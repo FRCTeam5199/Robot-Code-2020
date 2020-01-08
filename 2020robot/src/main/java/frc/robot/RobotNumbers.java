@@ -6,7 +6,7 @@ public class RobotNumbers{
     //public static final double [NAME] = [VALUE];
     //public static final double maxHeight = 40; <-- EXAMPLE
     
-    public static final double rotationSpeedMultiplier = .7;
+    public static final double rotationSpeedMultiplier = 0.1;
     public static final double forwardSpeedMultiplier = 1;
 
     public static final double drivebaseP = 6e-5;

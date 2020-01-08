@@ -6,8 +6,8 @@ public class RobotMap{
     
     //just 4 spark maxes on CAN, not too complicated, 1 and 2 are pair, 3 and 4 are pair, make sure they're right
     public static final int driveLeaderL = 1; 
-    public static final int driveSlaveL = 2;
+    public static final int driveFollowerL = 2;
     public static final int driveLeaderR = 3;
-    public static final int driveSlaveR = 4;
+    public static final int driveFollowerR = 4;
 
 }
