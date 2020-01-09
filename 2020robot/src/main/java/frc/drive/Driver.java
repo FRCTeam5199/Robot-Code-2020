@@ -35,7 +35,7 @@ public class Driver{
     private final PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.415));
-    DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
+    //DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
 
     private final XBoxController controller;
     private CANSparkMax leaderL;
@@ -50,6 +50,8 @@ public class Driver{
 
     public double[] ypr = new double[3];
     private double[] startypr = new double[3];
+
+    public double currentOmega;
 
     public Driver(){
         controller = new XBoxController(0);
@@ -68,21 +70,29 @@ public class Driver{
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
         leaderL.setInverted(true);
-        resetPigeon();
-        updatePigeon();
+        //resetPigeon();
+        //updatePigeon();
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
     }
 
     public void update(){
-        updatePigeon();
-        drive(adjustedDrive(controller.getStickLY()), adjustedDrive(controller.getStickRX()));
+        //drive(0.5,1);
+        drive(controller.getStickLY(), controller.getStickRX());
+        //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
     }
 
-    private void drive(double FPS, double omega){
-        var chassisSpeeds = new ChassisSpeeds(Units.feetToMeters(FPS), 0, omega);
+    //drive with inputs -1 to 1
+    private void drive(double forward, double rotation){ 
+        drivePure(adjustedDrive(forward), adjustedRotation(rotation));
+    }
+
+    private void drivePure(double FPS, double omega){
+        currentOmega = -omega;
+        var chassisSpeeds = new ChassisSpeeds(Units.feetToMeters(FPS), 0, -omega);
         DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(chassisSpeeds);
-        double leftVelocity = wheelSpeeds.leftMetersPerSecond;
-        double rightVelocity = wheelSpeeds.rightMetersPerSecond;
+        double leftVelocity = Units.metersToFeet(wheelSpeeds.leftMetersPerSecond);
+        double rightVelocity = Units.metersToFeet(wheelSpeeds.rightMetersPerSecond);
+        //System.out.println("FPS: "+leftVelocity+"  "+rightVelocity+" RPM: "+convertFPStoRPM(leftVelocity)+" "+convertFPStoRPM(rightVelocity));
         leftPID.setReference(convertFPStoRPM(leftVelocity), ControlType.kVelocity);
         rightPID.setReference(convertFPStoRPM(rightVelocity), ControlType.kVelocity);
     }
@@ -108,8 +118,12 @@ public class Driver{
     private double convertFPStoRPM(double FPS){
         return FPS*(RobotNumbers.maxMotorSpeed/RobotNumbers.maxSpeed);
     }
+
+    private double omega(){
+        return currentOmega;
+    }
     
-    //pigeon code ------------------------------------------------------------------------------------------------------------------
+    /*//pigeon code ------------------------------------------------------------------------------------------------------------------
     public void updatePigeon(){
         pigeon.getYawPitchRoll(ypr);
     }
@@ -142,6 +156,6 @@ public class Driver{
     public double rollRel(){ //return relative roll of pigeon
         updatePigeon();
         return ypr[2]-startypr[2];
-    }
+    }*/
 
 }
