@@ -29,10 +29,13 @@ import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 
+import java.lang.Math;
+
 public class Driver{
+    private final PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.415));
-    DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(getGyroHeading(), new Pose2d(5.0, 13.5, new Rotation2d()));
+    DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
 
     private final XBoxController controller;
     private CANSparkMax leaderL;
@@ -40,9 +43,13 @@ public class Driver{
     private CANSparkMax leaderR;
     private CANSparkMax followerR1;
 
-    private PIDController headControl;
+    private CANPIDController leftPID;
+    private CANPIDController rightPID;
 
     private double targetHeading;
+
+    public double[] ypr = new double[3];
+    private double[] startypr = new double[3];
 
     public Driver(){
         controller = new XBoxController(0);
@@ -50,6 +57,9 @@ public class Driver{
         leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
         followerL1 = new CANSparkMax(RobotMap.driveFollowerL, MotorType.kBrushless);
         followerR1 = new CANSparkMax(RobotMap.driveFollowerR, MotorType.kBrushless);
+
+        leftPID = leaderL.getPIDController();
+        rightPID = leaderR.getPIDController();
         
         //headControl = new PIDController(Kp, Ki, Kd);
     }
@@ -58,11 +68,80 @@ public class Driver{
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
         leaderL.setInverted(true);
+        resetPigeon();
+        updatePigeon();
+        setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
     }
 
     public void update(){
-
+        updatePigeon();
+        drive(adjustedDrive(controller.getStickLY()), adjustedDrive(controller.getStickRX()));
     }
 
+    private void drive(double FPS, double omega){
+        var chassisSpeeds = new ChassisSpeeds(Units.feetToMeters(FPS), 0, omega);
+        DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(chassisSpeeds);
+        double leftVelocity = wheelSpeeds.leftMetersPerSecond;
+        double rightVelocity = wheelSpeeds.rightMetersPerSecond;
+        leftPID.setReference(convertFPStoRPM(leftVelocity), ControlType.kVelocity);
+        rightPID.setReference(convertFPStoRPM(rightVelocity), ControlType.kVelocity);
+    }
+
+    private void setPID(double P, double I, double D){
+        leftPID.setP(P);
+        leftPID.setI(I);
+        leftPID.setD(D);
+        rightPID.setP(P);
+        rightPID.setI(I);
+        rightPID.setD(D);
+    }
+
+    private double adjustedDrive(double input){
+        return input*RobotNumbers.maxSpeed;
+    }
+
+    private double adjustedRotation(double input){
+        return input*RobotNumbers.maxRotation;
+    }
+
+
+    private double convertFPStoRPM(double FPS){
+        return FPS*(RobotNumbers.maxMotorSpeed/RobotNumbers.maxSpeed);
+    }
     
+    //pigeon code ------------------------------------------------------------------------------------------------------------------
+    public void updatePigeon(){
+        pigeon.getYawPitchRoll(ypr);
+    }
+    public void resetPigeon(){
+        updatePigeon();
+        startypr = ypr;
+    }
+    //absolute ypr -----------------------------------------------------------------------------------------------------------------
+    public double yawAbs(){ //return absolute yaw of pigeon
+        updatePigeon();
+        return ypr[0];
+    }
+    public double pitchAbs(){ //return absolute pitch of pigeon
+        updatePigeon();
+        return ypr[1];
+    }
+    public double rollAbs(){ //return absolute roll of pigeon
+        updatePigeon();
+        return ypr[2];
+    }
+    //relative ypr ----------------------------------------------------------------------------------------------------------------
+    public double yawRel(){ //return relative(to start) yaw of pigeon
+        updatePigeon();
+        return ypr[0]-startypr[0];
+    }
+    public double pitchRel(){ //return relative pitch of pigeon
+        updatePigeon();
+        return ypr[1]-startypr[1];
+    }
+    public double rollRel(){ //return relative roll of pigeon
+        updatePigeon();
+        return ypr[2]-startypr[2];
+    }
+
 }

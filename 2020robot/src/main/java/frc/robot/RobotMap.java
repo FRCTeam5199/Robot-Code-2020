@@ -10,4 +10,5 @@ public class RobotMap{
     public static final int driveLeaderR = 3;
     public static final int driveFollowerR = 4;
 
+    public static final int pigeon = 1;
 }
