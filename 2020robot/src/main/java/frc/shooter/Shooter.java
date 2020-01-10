@@ -18,5 +18,23 @@ import com.revrobotics.ControlType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Shooter{
+    private double driveOmega;
+    private double omega;
+    public Shooter(){
+
+    }
+
+    public void update(){
+        omega = -driveOmega;
+        SmartDashboard.putNumber("Shooter Omega",omega);
+    }
+
+    public void init(){
+
+    }
+
+    public void setDriveOmega(double omega){
+        driveOmega = omega;
+    }
 
 }

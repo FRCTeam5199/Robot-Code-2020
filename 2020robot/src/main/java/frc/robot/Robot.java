@@ -9,6 +9,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.drive.*;
+//import frc.shooter.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -19,6 +20,7 @@ import frc.drive.*;
  */
 public class Robot extends TimedRobot {
   Driver driver;
+  //Shooter shooter;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -27,6 +29,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     driver = new Driver();
+    //shooter = new Shooter();
   }
 
   /**
@@ -60,6 +63,8 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     driver.update();
+    //shooter.setDriveOmega(driver.omega());
+    //shooter.update();
   }
 
   /**

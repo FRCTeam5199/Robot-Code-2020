@@ -119,7 +119,7 @@ public class Driver{
         return FPS*(RobotNumbers.maxMotorSpeed/RobotNumbers.maxSpeed);
     }
 
-    private double omega(){
+    public double omega(){
         return currentOmega;
     }
     
