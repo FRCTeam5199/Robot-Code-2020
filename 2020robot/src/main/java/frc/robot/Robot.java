@@ -29,6 +29,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     driver = new Driver();
+    driver.init();
     //shooter = new Shooter();
   }
 

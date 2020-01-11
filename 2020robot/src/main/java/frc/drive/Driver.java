@@ -69,7 +69,8 @@ public class Driver{
     public void init(){
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
-        leaderL.setInverted(true);
+        leaderL.setInverted(false);
+        leaderR.setInverted(true);
         //resetPigeon();
         //updatePigeon();
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
@@ -77,6 +78,8 @@ public class Driver{
 
     public void update(){
         //drive(0.5,1);
+        double turnSpeed = controller.getStickRX() * -0.7;
+        //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);
         drive(controller.getStickLY(), controller.getStickRX());
         //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
     }
@@ -86,6 +89,11 @@ public class Driver{
         drivePure(adjustedDrive(forward), adjustedRotation(rotation));
     }
 
+    public void drivePID(double left, double right){ //set target speeds for PID controlled drive
+        leftPID.setReference(left*5000, ControlType.kVelocity);
+        rightPID.setReference(left*5000, ControlType.kVelocity);
+    }
+
     private void drivePure(double FPS, double omega){
         currentOmega = -omega;
         var chassisSpeeds = new ChassisSpeeds(Units.feetToMeters(FPS), 0, -omega);
@@ -93,8 +101,9 @@ public class Driver{
         double leftVelocity = Units.metersToFeet(wheelSpeeds.leftMetersPerSecond);
         double rightVelocity = Units.metersToFeet(wheelSpeeds.rightMetersPerSecond);
         //System.out.println("FPS: "+leftVelocity+"  "+rightVelocity+" RPM: "+convertFPStoRPM(leftVelocity)+" "+convertFPStoRPM(rightVelocity));
-        leftPID.setReference(convertFPStoRPM(leftVelocity), ControlType.kVelocity);
-        rightPID.setReference(convertFPStoRPM(rightVelocity), ControlType.kVelocity);
+        leftPID.setReference(convertFPStoRPM(leftVelocity)*3.8, ControlType.kVelocity);
+        rightPID.setReference(convertFPStoRPM(rightVelocity)*3.8, ControlType.kVelocity);
+        System.out.println(leaderL.getEncoder().getVelocity()+" "+leaderR.getEncoder().getVelocity());
     }
 
     private void setPID(double P, double I, double D){
@@ -104,6 +113,9 @@ public class Driver{
         rightPID.setP(P);
         rightPID.setI(I);
         rightPID.setD(D);
+
+        leftPID.setOutputRange(-1, 1);
+        rightPID.setOutputRange(-1, 1);
     }
 
     private double adjustedDrive(double input){
