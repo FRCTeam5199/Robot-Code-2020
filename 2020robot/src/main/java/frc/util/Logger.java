@@ -59,11 +59,17 @@ public class Logger {
 
     long log_write_index;
     String log_name = null;
-    String output_dir = "/U/data_captures/shooter"; // USB drive is mounted to /U on roboRIO
+    String output_dir = "/U/data_captures/"; // USB drive is mounted to /U on roboRIO
     BufferedWriter log_file = null;
     boolean log_open = false;
 
+    public Logger(String dir){
+        output_dir = "/U/data_captures/"+dir+"/";
+    }
 
+    public void setOutputDir(String dir){
+        output_dir = "/U/data_captures/"+dir+"/";
+    }
 
     /**
      * Determines a unique file name, and opens a file in the data captures directory and writes the
@@ -200,7 +206,7 @@ public class Logger {
      * @return -1 on failure to close, 0 on success
      */
     public int close() {
-
+        System.out.println("attempting to close log");
         if (log_open == false) {
             System.out.println("Warning - Log is not yet opened, nothing to close.");
             return 0;
@@ -215,6 +221,7 @@ public class Logger {
             System.out.println("Error Closing Log File: " + e.getMessage());
             return -1;
         }
+        System.out.println("closed successfully");
         return 0;
 
     }

@@ -74,11 +74,20 @@ public class Robot extends TimedRobot {
     //shooter.update();
   }
 
+  @Override
+  public void testInit() {
+    shooter.initLogger();
+  }
   /**
    * This function is called periodically during test mode.
    */
   @Override
   public void testPeriodic() {
     shooter.update();
+  }
+
+  @Override
+  public void disabledInit() {
+    shooter.closeLogger();
   }
 }

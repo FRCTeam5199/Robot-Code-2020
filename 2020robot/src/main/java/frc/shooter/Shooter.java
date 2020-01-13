@@ -31,7 +31,7 @@ public class Shooter{
     private boolean enabled = true;
 
     private Timer timer = new Timer();
-    private Logger logger = new Logger();
+    private Logger logger = new Logger("shooter");
 
     private double pulleyRatio = RobotNumbers.motorPulleySize/RobotNumbers.driverPulleySize;
 
@@ -39,6 +39,12 @@ public class Shooter{
     private NetworkTableEntry shooterSpeed = tab.add("Shooter Speed", 0).getEntry();
     private NetworkTableEntry shooterToggle = tab.add("Shooter Toggle", false).getEntry();
     private NetworkTableEntry rampRate = tab.add("Ramp Rate", 40).getEntry();
+
+    public String[] data = { "time", "speed", "target speed", "motor temperature", "motor current"};
+    public String[] units = {"seconds", "rpm", "rpm", "C", "A"};
+
+    private double speed;
+    private int ballsShot;
 
     // private NetworkTableEntry shooterP = tab.add("P", 0).getEntry();
     // private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
@@ -54,9 +60,11 @@ public class Shooter{
     }
 
     public void update(){
-        double speed = shooterSpeed.getDouble(0);
+        speed = shooterSpeed.getDouble(0);
         double rate = rampRate.getDouble(40);
         boolean toggle = shooterToggle.getBoolean(false);
+        
+        boolean atSpeed;
 
         if(leader.getOpenLoopRampRate()!=rate){
             leader.setOpenLoopRampRate(rate);
@@ -84,6 +92,8 @@ public class Shooter{
             leader.set(0);
             //setSpeed(0);
         }
+
+        
         // }
         // else{
         //     setSpeed(0);
@@ -121,14 +131,9 @@ public class Shooter{
         follower.setIdleMode(IdleMode.kCoast);
 
         leader.getEncoder().setPosition(0);
-        leader.setOpenLoopRampRate(20);
-
-        String[] data = {"speed", "time"};
-        String[] units = {"rpm", "seconds"};
-        if(RobotToggles.logData){
-            logger.init(data, units);
-            timer.start();
-        }
+        leader.setOpenLoopRampRate(40);     
+        
+        ballsShot = 0;
 
         //leader.setInverted(false);
         // follower.setInverted(true);
@@ -148,8 +153,18 @@ public class Shooter{
         // speedo.setD(D);
     }
 
+    public void initLogger(){
+        System.out.println("attempting to initialize logger");
+        if(true){
+            logger.init(data, units);
+            timer.start();
+        }
+    }
+    public void closeLogger(){
+        logger.close();
+    }
     private void writeData(){
-        double[] data = {leader.getEncoder().getVelocity(), timer.get()};
+        double[] data = {timer.get(), leader.getEncoder().getVelocity(), speed, leader.getMotorTemperature(), leader.getOutputCurrent()};
         logger.writeData(data);
     }
 }
