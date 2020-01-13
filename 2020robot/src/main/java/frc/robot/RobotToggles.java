@@ -14,6 +14,8 @@ public class RobotToggles{
     public static boolean postPigeonRoll = true;
     public static boolean postMotorDebug = true;
 
+    public static boolean logData = true;
+
     public static boolean drive = true;
     public static boolean useDrivePID = false; //use PID based drive controller
 }

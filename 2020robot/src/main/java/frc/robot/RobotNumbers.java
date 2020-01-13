@@ -16,6 +16,12 @@ public class RobotNumbers{
     public static final double wheelDiameter = 4; //wheel diameter, used literally nowhere
     public static final double maxMotorSpeed = 5000; //theoretical max motor speed
 
+    public static final double motorPulleySize = 1;
+    public static final double driverPulleySize = .75;
+    public static final double driverWheelDiameter = 6;
+
+    public static final double turretRotationSpeedMultiplier = 1; //multiplied to drive omega to calibrate the compensating rotation speed offset of the turret
+
     //junk for motor debug code, change names if needed
     public static final String[] sparkErrors = {"Brownout", "Overcurrent", "IWDTReset", "MotorFault", "SensorFault", "Stall", "EEPROMCRC", "CANTX", "CANRX", "HasReset", "DRVFault", "OtherFault"};
     public static final FaultID[] sparkErrorIDs = {FaultID.kBrownout, FaultID.kOvercurrent, FaultID.kIWDTReset, FaultID.kMotorFault, FaultID.kSensorFault, FaultID.kStall, FaultID.kEEPROMCRC, FaultID.kCANTX, FaultID.kCANRX, FaultID.kHasReset, FaultID.kDRVFault, FaultID.kOtherFault};

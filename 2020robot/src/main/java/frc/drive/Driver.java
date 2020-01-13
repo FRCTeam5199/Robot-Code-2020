@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -71,8 +72,8 @@ public class Driver{
         followerR1.follow(leaderR);
         leaderL.setInverted(false);
         leaderR.setInverted(true);
-        //resetPigeon();
-        //updatePigeon();
+        resetPigeon();
+        updatePigeon();
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
     }
 
@@ -82,6 +83,7 @@ public class Driver{
         //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);
         drive(controller.getStickLY(), controller.getStickRX());
         //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
+        
     }
 
     //drive with inputs -1 to 1
@@ -103,7 +105,7 @@ public class Driver{
         //System.out.println("FPS: "+leftVelocity+"  "+rightVelocity+" RPM: "+convertFPStoRPM(leftVelocity)+" "+convertFPStoRPM(rightVelocity));
         leftPID.setReference(convertFPStoRPM(leftVelocity)*3.8, ControlType.kVelocity);
         rightPID.setReference(convertFPStoRPM(rightVelocity)*3.8, ControlType.kVelocity);
-        System.out.println(leaderL.getEncoder().getVelocity()+" "+leaderR.getEncoder().getVelocity());
+        //System.out.println(leaderL.getEncoder().getVelocity()+" "+leaderR.getEncoder().getVelocity());
     }
 
     private void setPID(double P, double I, double D){
@@ -135,7 +137,7 @@ public class Driver{
         return currentOmega;
     }
     
-    /*//pigeon code ------------------------------------------------------------------------------------------------------------------
+    //pigeon code ------------------------------------------------------------------------------------------------------------------
     public void updatePigeon(){
         pigeon.getYawPitchRoll(ypr);
     }
@@ -168,6 +170,5 @@ public class Driver{
     public double rollRel(){ //return relative roll of pigeon
         updatePigeon();
         return ypr[2]-startypr[2];
-    }*/
-
+    }
 }

@@ -37,6 +37,7 @@ public class Spinner{
             return 'N';
         }
     }
+    
     private String getFMSColorString(){ //return the color you want under the bar
         String color = DriverStation.getInstance().getGameSpecificMessage();
         if(color.length()>0){
