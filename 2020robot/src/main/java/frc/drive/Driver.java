@@ -30,6 +30,8 @@ import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 
+import frc.vision.BallLimelight;
+
 import java.lang.Math;
 
 public class Driver{
@@ -37,6 +39,7 @@ public class Driver{
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.415));
     //DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
+    private BallLimelight limelight = new BallLimelight();
 
     private final XBoxController controller;
     private CANSparkMax leaderL;
@@ -70,6 +73,7 @@ public class Driver{
     }
 
     public void init(){
+        limelight.init();
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
         leaderL.setInverted(true);
@@ -81,15 +85,19 @@ public class Driver{
 
     public void update(){
         //drive(0.5,1);
-        double turnSpeed = controller.getStickRX() * -0.7;
-        double omega = controller.getStickRX();
+        double turn = -controller.getStickRX();
+        chaseBall = controller.getButton(6);
+
         //!!!!!
         //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
         if(chaseBall){
-            //omega += left/right distance
+            double omegaOffset = -limelight.getBallAngle();
+            if(Math.abs(omegaOffset)>RobotNumbers.llTolerance){
+                turn += omegaOffset/70; //pulled number out of nowhere, bigger value makes the limelight have a smaller effect
+            }
         }
         //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);
-        drive(controller.getStickLY(), omega);
+        drive(controller.getStickLY(), turn);
         //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
         
     }

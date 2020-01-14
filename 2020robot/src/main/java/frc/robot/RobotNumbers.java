@@ -8,6 +8,7 @@ public class RobotNumbers{
 
     public static final double maxSpeed = 10; //max speed in fps - REAL IS 10(for 4in wheels)
     public static final double maxRotation = 11.2; //max rotational speed in radians per second - REAL IS 11.2(for 4in wheels)
+    public static final double llTolerance = 3;
 
     public static final double drivebaseP = 3e-5;
     public static final double drivebaseI = 0;
@@ -21,6 +22,7 @@ public class RobotNumbers{
     public static final double driverWheelDiameter = 6;
 
     public static final double turretRotationSpeedMultiplier = 1; //multiplied to drive omega to calibrate the compensating rotation speed offset of the turret
+
 
     //junk for motor debug code, change names if needed
     public static final String[] sparkErrors = {"Brownout", "Overcurrent", "IWDTReset", "MotorFault", "SensorFault", "Stall", "EEPROMCRC", "CANTX", "CANRX", "HasReset", "DRVFault", "OtherFault"};
