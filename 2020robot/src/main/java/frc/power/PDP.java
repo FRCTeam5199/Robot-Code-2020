@@ -15,21 +15,33 @@ public class PDP{
     public String[] data = {"match time", "init time", "Battery Voltage", "PDP temperature", "total current"};
     public String[] units = {"seconds", "seconds", "v", "C", "A"};
 
+    /**
+     * Initialize the logger for the PDP, call during autonomousInit.
+     */
     public void initLogger(){
         System.out.println("attempting to initialize logger - PDP");
         logger.init(data, units);
         timer.start();
     }
 
+    /**
+     * Initialize the PDP object.
+     */
     public void init(){
         //empty lol
     }
 
+    /**
+     * Update the PDP object.
+     */
     public void update(){
         double[] data = {Timer.getMatchTime(), timer.get(), pdp.getVoltage(), pdp.getTemperature(), pdp.getTotalCurrent()};
         logger.writeData(data);
     }
 
+    /**
+     * Close the PDP logger, call during disabledInit.
+     */
     public void closeLogger(){
         logger.close();
     }

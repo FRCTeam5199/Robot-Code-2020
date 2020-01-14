@@ -58,6 +58,9 @@ public class Shooter{
         follower.follow(leader, true);
     }
 
+    /**
+     * Update the Shooter object.
+     */
     public void update(){
         speed = shooterSpeed.getDouble(0);
         double rate = rampRate.getDouble(40);
@@ -115,10 +118,17 @@ public class Shooter{
     //     //System.out.println("setSpeed2");
     // }
 
+    /**
+     * Enable or disable the shooter being spun up.
+     * @param toggle - spun up true or false
+     */
     public void toggle(boolean toggle){
         enabled = toggle;
     }
 
+    /**
+     * Initialize the Shooter object.
+     */
     public void init(){
         // shooterP.getDouble(0);
         // shooterI.getDouble(0);
@@ -146,20 +156,35 @@ public class Shooter{
         //speedo.setOutputRange(-1, 1);
     }
 
+    /**
+     * Set the P, I, and D values for the shooter.
+     * @param P - P value
+     * @param I - I value
+     * @param D - D value
+     */
     private void setPID(double P, double I, double D){
         // speedo.setP(P);
         // speedo.setI(I);
         // speedo.setD(D);
     }
 
+    /**
+     * Initialize the Shooter logger, run during autonomousInit.
+     */
     public void initLogger(){
         System.out.println("attempting to initialize logger - Shooter");
         logger.init(data, units);
         timer.start();
     }
+    /**
+     * Close the Shooter logger, run during disabledInit().
+     */
     public void closeLogger(){
         logger.close();
     }
+    /**
+     * Write shooter data to the log file.
+     */
     private void writeData(){
         double[] data = {Timer.getMatchTime(), timer.get(), leader.getEncoder().getVelocity(), speed, leader.getMotorTemperature(), leader.getOutputCurrent()};
         logger.writeData(data);

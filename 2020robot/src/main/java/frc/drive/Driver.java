@@ -72,6 +72,9 @@ public class Driver{
         //headControl = new PIDController(Kp, Ki, Kd);
     }
 
+    /**
+     * Initialize the Driver object.
+     */
     public void init(){
         limelight.init();
         followerL1.follow(leaderL);
@@ -83,15 +86,18 @@ public class Driver{
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
     }
 
+    /**
+     * Update the Driver object.
+     */
     public void update(){
         //drive(0.5,1);
-        double turn = -controller.getStickRX();
+        double turn = controller.getStickRX();
         chaseBall = controller.getButton(6);
 
         //!!!!!
         //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
         if(chaseBall){
-            double omegaOffset = -limelight.getBallAngle();
+            double omegaOffset = limelight.getBallAngle();
             if(Math.abs(omegaOffset)>RobotNumbers.llTolerance){
                 turn += omegaOffset/70; //pulled number out of nowhere, bigger value makes the limelight have a smaller effect
             }
@@ -102,18 +108,26 @@ public class Driver{
         
     }
 
-    //drive with inputs -1 to 1
+    /**
+     * Drive based on inputs -1 to 1.
+     */
     private void drive(double forward, double rotation){ 
         drivePure(adjustedDrive(forward), adjustedRotation(rotation));
     }
 
-    public void drivePID(double left, double right){ //set target speeds for PID controlled drive
-        leftPID.setReference(left*5000, ControlType.kVelocity);
-        rightPID.setReference(left*5000, ControlType.kVelocity);
+    /**
+     * Drive each side based on a -1 to 1 scale but with PID
+     */
+    public void drivePID(double left, double right){ 
+        leftPID.setReference(left*RobotNumbers.maxMotorSpeed, ControlType.kVelocity);
+        rightPID.setReference(left*RobotNumbers.maxMotorSpeed, ControlType.kVelocity);
     }
 
+    /**
+     * Drive based on FPS and omega(speed of rotation in rad/sec)
+     */
     private void drivePure(double FPS, double omega){
-        currentOmega = -omega;
+        currentOmega = omega;
         var chassisSpeeds = new ChassisSpeeds(Units.feetToMeters(FPS), 0, -omega);
         DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(chassisSpeeds);
         double leftVelocity = Units.metersToFeet(wheelSpeeds.leftMetersPerSecond);
@@ -124,6 +138,9 @@ public class Driver{
         //System.out.println(leaderL.getEncoder().getVelocity()+" "+leaderR.getEncoder().getVelocity());
     }
 
+    /**
+     * Set P, I, and D values for the drivetrain.
+     */
     private void setPID(double P, double I, double D){
         leftPID.setP(P);
         leftPID.setI(I);
@@ -149,6 +166,10 @@ public class Driver{
         return FPS*(RobotNumbers.maxMotorSpeed/RobotNumbers.maxSpeed);
     }
 
+    /**
+     * Get the current Omega value.
+     * @return speed of rotation in rad/sec
+     */
     public double omega(){
         return currentOmega;
     }
