@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import frc.drive.*;
 import frc.spinner.*;
 import frc.shooter.*;
+import frc.power.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -23,6 +24,8 @@ public class Robot extends TimedRobot {
   Driver driver;
   Spinner spinner;
   Shooter shooter;
+  PDP pdp;
+  
 
   /**
    * This function is run when the robot is first started up and should be
@@ -37,6 +40,9 @@ public class Robot extends TimedRobot {
 
     shooter = new Shooter();
     shooter.init();
+
+    pdp = new PDP();
+    pdp.init();
   }
 
   /**
@@ -53,7 +59,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    
+    shooter.initLogger();
+    pdp.initLogger();
   }
 
   /**
@@ -77,6 +84,7 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     shooter.initLogger();
+    pdp.initLogger();
   }
   /**
    * This function is called periodically during test mode.
@@ -84,10 +92,12 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
     shooter.update();
+    pdp.update();
   }
 
   @Override
   public void disabledInit() {
     shooter.closeLogger();
+    pdp.closeLogger();
   }
 }

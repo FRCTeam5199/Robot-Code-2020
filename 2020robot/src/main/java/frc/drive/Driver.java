@@ -54,6 +54,8 @@ public class Driver{
 
     public double currentOmega;
 
+    private boolean chaseBall;
+
     public Driver(){
         controller = new XBoxController(0);
         leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
@@ -70,8 +72,8 @@ public class Driver{
     public void init(){
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
-        leaderL.setInverted(false);
-        leaderR.setInverted(true);
+        leaderL.setInverted(true);
+        leaderR.setInverted(false);
         resetPigeon();
         updatePigeon();
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
@@ -80,8 +82,14 @@ public class Driver{
     public void update(){
         //drive(0.5,1);
         double turnSpeed = controller.getStickRX() * -0.7;
+        double omega = controller.getStickRX();
+        //!!!!!
+        //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
+        if(chaseBall){
+            //omega += left/right distance
+        }
         //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);
-        drive(controller.getStickLY(), controller.getStickRX());
+        drive(controller.getStickLY(), omega);
         //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
         
     }

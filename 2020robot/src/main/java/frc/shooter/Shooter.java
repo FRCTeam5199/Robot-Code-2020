@@ -40,9 +40,10 @@ public class Shooter{
     private NetworkTableEntry shooterToggle = tab.add("Shooter Toggle", false).getEntry();
     private NetworkTableEntry rampRate = tab.add("Ramp Rate", 40).getEntry();
 
-    public String[] data = { "time", "speed", "target speed", "motor temperature", "motor current"};
-    public String[] units = {"seconds", "rpm", "rpm", "C", "A"};
+    public String[] data = {"match time", "init time", "speed", "target speed", "motor temperature", "motor current"};
+    public String[] units = {"seconds", "seconds", "rpm", "rpm", "C", "A"};
 
+    private double targetRPM;
     private double speed;
     private int ballsShot;
 
@@ -53,8 +54,6 @@ public class Shooter{
     public Shooter(){
         leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
         follower = new CANSparkMax(RobotMap.shooterFollower, MotorType.kBrushless);
-        //speedo = new CANPIDController(leader);
-
         //speedo = leader.getPIDController();
         follower.follow(leader, true);
     }
@@ -154,17 +153,15 @@ public class Shooter{
     }
 
     public void initLogger(){
-        System.out.println("attempting to initialize logger");
-        if(true){
-            logger.init(data, units);
-            timer.start();
-        }
+        System.out.println("attempting to initialize logger - Shooter");
+        logger.init(data, units);
+        timer.start();
     }
     public void closeLogger(){
         logger.close();
     }
     private void writeData(){
-        double[] data = {timer.get(), leader.getEncoder().getVelocity(), speed, leader.getMotorTemperature(), leader.getOutputCurrent()};
+        double[] data = {Timer.getMatchTime(), timer.get(), leader.getEncoder().getVelocity(), speed, leader.getMotorTemperature(), leader.getOutputCurrent()};
         logger.writeData(data);
     }
 }

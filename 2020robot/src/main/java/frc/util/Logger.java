@@ -62,6 +62,7 @@ public class Logger {
     String output_dir = "/U/data_captures/"; // USB drive is mounted to /U on roboRIO
     BufferedWriter log_file = null;
     boolean log_open = false;
+    boolean errorSent = false;
 
     public Logger(String dir){
         output_dir = "/U/data_captures/"+dir+"/";
@@ -117,7 +118,7 @@ public class Logger {
         }
         // Catch ALL the errors!!!
         catch (IOException e) {
-            System.out.println("Error initializing log file: " + e.getMessage());
+            System.out.println("Error initializing log file: " + e.getMessage()+" - Is the USB drive plugged in?");
             return -1;
         }
         System.out.println("done!");
@@ -141,7 +142,10 @@ public class Logger {
         String line_to_write = "";
 
         if (log_open == false) {
-            System.out.println("Error - Log is not yet opened, cannot write!");
+            if(!errorSent){
+                System.out.println("Error - Log is not yet opened, cannot write!");
+                errorSent = true;
+            }
             return -1;
         }
 
