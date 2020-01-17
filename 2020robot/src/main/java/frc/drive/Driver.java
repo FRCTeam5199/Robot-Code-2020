@@ -58,6 +58,7 @@ public class Driver{
     public double currentOmega;
 
     private boolean chaseBall;
+    private boolean pointBall;
 
     public Driver(){
         controller = new XBoxController(0);
@@ -92,14 +93,20 @@ public class Driver{
     public void update(){
         //drive(0.5,1);
         double turn = controller.getStickRX();
-        chaseBall = controller.getButton(6);
+        double drive = controller.getStickLY();
+        pointBall = controller.getButton(6);
+        chaseBall = controller.getRTriggerPressed();
 
         //!!!!!
         //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
-        if(chaseBall){
+        if(pointBall){
             double omegaOffset = limelight.getBallAngle();
+            double driveOffset = limelight.getBallSize();
             if(Math.abs(omegaOffset)>RobotNumbers.llTolerance){
                 turn += omegaOffset/70; //pulled number out of nowhere, bigger value makes the limelight have a smaller effect
+            }
+            if(chaseBall){
+                drive += 70/driveOffset;
             }
         }
         //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);

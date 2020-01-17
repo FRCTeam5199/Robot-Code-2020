@@ -2,6 +2,7 @@ package frc.controllers;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import frc.robot.RobotNumbers;
 
 public class XBoxController {
 	private Joystick stick;
@@ -79,7 +80,7 @@ public class XBoxController {
 	}
 
 	//conor junk
-	double sensitivity;
+	double sensitivity = RobotNumbers.triggerSensitivity;
 
 	public void setTriggerSensitivity(double sens){
 		sensitivity = sens;

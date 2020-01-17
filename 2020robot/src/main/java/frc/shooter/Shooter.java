@@ -47,14 +47,14 @@ public class Shooter{
     private double speed;
     private int ballsShot;
 
-    // private NetworkTableEntry shooterP = tab.add("P", 0).getEntry();
-    // private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
-    // private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
+    private NetworkTableEntry shooterP = tab.add("P", 0).getEntry();
+    private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
+    private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
 
     public Shooter(){
         leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
         follower = new CANSparkMax(RobotMap.shooterFollower, MotorType.kBrushless);
-        //speedo = leader.getPIDController();
+        speedo = leader.getPIDController();
         follower.follow(leader, true);
     }
 
@@ -73,33 +73,28 @@ public class Shooter{
             System.out.println("Ramp Rate Set to "+rate+", now "+leader.getOpenLoopRampRate());
         }
 
-        // double Pold = speedo.getP();
-        // double Iold = speedo.getI();
-        // double Dold = speedo.getD();
-        // double P = shooterP.getDouble(0);
-        // double I = shooterI.getDouble(0);
-        // double D = shooterD.getDouble(0);
-        // if(P!=Pold || I!=Iold || D!=Dold){
-        //     setPID(P,I,D);
-        //     System.out.println("PID reset");
-        // }
+        double Pold = speedo.getP();
+        double Iold = speedo.getI();
+        double Dold = speedo.getD();
+        double P = shooterP.getDouble(0);
+        double I = shooterI.getDouble(0);
+        double D = shooterD.getDouble(0);
+        if(P!=Pold || I!=Iold || D!=Dold){
+            setPID(P,I,D);
+            //System.out.println("PID reset");
+        }
         //if(enabled){
             //leader.set(0.05);
         toggle(toggle);
         if(enabled){
-            leader.set(speed);
-            //setSpeed(speed);
+            //leader.set(speed);
+            setSpeed(speed);
         }
         else{
-            leader.set(0);
-            //setSpeed(0);
+            //leader.set(0);
+            setSpeed(0);
         }
 
-        
-        // }
-        // else{
-        //     setSpeed(0);
-        // }
         double actualRPM = leader.getEncoder().getVelocity();
         SmartDashboard.putNumber("RPM", actualRPM);
         SmartDashboard.putNumber("Target RPM", speed);
@@ -112,11 +107,15 @@ public class Shooter{
         //System.out.println(leader.getEncoder().getVelocity());
     }
 
-    // public void setSpeed(double rpm){
-    //     //System.out.println("setSpeed1");
-    //     speedo.setReference(rpm, ControlType.kVelocity);
-    //     //System.out.println("setSpeed2");
-    // }
+    /**
+     * Set drive wheel RPM
+     * @param rpm
+     */
+    public void setSpeed(double rpm){
+        //System.out.println("setSpeed1");
+        speedo.setReference(rpm, ControlType.kVelocity);
+        //System.out.println("setSpeed2");
+    }
 
     /**
      * Enable or disable the shooter being spun up.
@@ -130,9 +129,9 @@ public class Shooter{
      * Initialize the Shooter object.
      */
     public void init(){
-        // shooterP.getDouble(0);
-        // shooterI.getDouble(0);
-        // shooterD.getDouble(0);
+        shooterP.getDouble(0);
+        shooterI.getDouble(0);
+        shooterD.getDouble(0);
 
         leader.setSmartCurrentLimit(40);
         follower.setSmartCurrentLimit(40);
@@ -147,13 +146,13 @@ public class Shooter{
         //leader.setInverted(false);
         // follower.setInverted(true);
 
-        //speedo = leader.getPIDController();
-        //encoder = leader.getEncoder();
+        speedo = leader.getPIDController();
+        encoder = leader.getEncoder();
         //setPID(4e-5, 0, 0);
-        //speedo.setOutputRange(-1, 1);
+        speedo.setOutputRange(-1, 1);
         //setPID(1,0,0);
 
-        //speedo.setOutputRange(-1, 1);
+        speedo.setOutputRange(-1, 1);
     }
 
     /**
@@ -163,9 +162,9 @@ public class Shooter{
      * @param D - D value
      */
     private void setPID(double P, double I, double D){
-        // speedo.setP(P);
-        // speedo.setI(I);
-        // speedo.setD(D);
+        speedo.setP(P);
+        speedo.setI(I);
+        speedo.setD(D);
     }
 
     /**
