@@ -60,6 +60,8 @@ public class Driver{
     private boolean chaseBall;
     private boolean pointBall;
 
+    private boolean invert;
+
     public Driver(){
         controller = new XBoxController(0);
         leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
@@ -91,11 +93,19 @@ public class Driver{
      * Update the Driver object.
      */
     public void update(){
+        invert = controller.getButton(6);
+        SmartDashboard.putBoolean("invert", invert);
         //drive(0.5,1);
-        double turn = controller.getStickRX();
-        double drive = controller.getStickLY();
-        pointBall = controller.getButton(6);
-        chaseBall = controller.getRTriggerPressed();
+        double turn = -controller.getStickRX();
+        double drive;
+        if(invert){
+            drive = -controller.getStickLY();
+        }
+        else{
+            drive = controller.getStickLY();
+        }
+        pointBall = false;//controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
+        chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
 
         //!!!!!
         //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
@@ -110,7 +120,7 @@ public class Driver{
             }
         }
         //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);
-        drive(controller.getStickLY(), turn);
+        drive(drive, turn);
         //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
         
     }

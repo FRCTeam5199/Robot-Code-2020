@@ -21,8 +21,6 @@ import frc.robot.RobotNumbers;
 import frc.robot.RobotToggles;
 import frc.util.Logger;
 
-import edu.wpi.first.wpilibj.Timer;
-
 public class Shooter{
     private final CANSparkMax leader, follower;
     private CANPIDController speedo;
@@ -40,22 +38,29 @@ public class Shooter{
     private NetworkTableEntry shooterToggle = tab.add("Shooter Toggle", false).getEntry();
     private NetworkTableEntry rampRate = tab.add("Ramp Rate", 40).getEntry();
 
-    public String[] data = {"match time", "init time", "speed", "target speed", "motor temperature", "motor current"};
-    public String[] units = {"seconds", "seconds", "rpm", "rpm", "C", "A"};
+    public String[] data = {"match time", "init time", "speed", "target speed", "motor temperature", "motor current", "powered", "P", "I", "D"};
+    public String[] units = {"seconds", "seconds", "rpm", "rpm", "C", "A", "T/F", "num", "num", "num"};
 
     private double targetRPM;
     private double speed;
     private int ballsShot;
+    private boolean poweredState;
 
     private NetworkTableEntry shooterP = tab.add("P", 0).getEntry();
     private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
     private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
 
+    private double P, I, D;
+
     public Shooter(){
         leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
         follower = new CANSparkMax(RobotMap.shooterFollower, MotorType.kBrushless);
-        speedo = leader.getPIDController();
+        if(RobotToggles.shooterPID){
+            speedo = leader.getPIDController();
+        }
+        leader.setInverted(true);
         follower.follow(leader, true);
+        poweredState = false;
     }
 
     /**
@@ -76,23 +81,34 @@ public class Shooter{
         double Pold = speedo.getP();
         double Iold = speedo.getI();
         double Dold = speedo.getD();
-        double P = shooterP.getDouble(0);
-        double I = shooterI.getDouble(0);
-        double D = shooterD.getDouble(0);
+        P = shooterP.getDouble(0);
+        I = shooterI.getDouble(0);
+        D = shooterD.getDouble(0);
         if(P!=Pold || I!=Iold || D!=Dold){
             setPID(P,I,D);
-            //System.out.println("PID reset");
+            System.out.println("PID reset");
         }
         //if(enabled){
             //leader.set(0.05);
         toggle(toggle);
         if(enabled){
-            //leader.set(speed);
-            setSpeed(speed);
+            //poweredState = true;
+            if(RobotToggles.shooterPID){
+                setSpeed(speed);
+            }
+            else{
+                leader.set(speed);
+            }
         }
         else{
-            //leader.set(0);
-            setSpeed(0);
+            //poweredState = false;
+            if(RobotToggles.shooterPID){
+                //do nothing because the voltage being set to 0 *should* coast it?
+                leader.set(0); //actually set the reference to 0 so our I value doesn't go sicko mode
+            }
+            else{
+                leader.set(0);
+            }
         }
 
         double actualRPM = leader.getEncoder().getVelocity();
@@ -102,6 +118,16 @@ public class Shooter{
         SmartDashboard.putNumber("Drive Wheel IPS", actualRPM*pulleyRatio*RobotNumbers.driverWheelDiameter*Math.PI);
         SmartDashboard.putNumber("Motor Current", leader.getOutputCurrent());
         SmartDashboard.putNumber("Motor Temp", leader.getMotorTemperature());
+        SmartDashboard.putNumber("I value", speedo.getIAccum());
+
+        // if(poweredState == true){
+        //     leader.setVoltage(12);
+        //     follower.setVoltage(12);
+        // }
+        // else{
+        //     leader.setVoltage(0);
+        //     follower.setVoltage(0);
+        // }
         
         if(RobotToggles.logData){writeData();}
         //System.out.println(leader.getEncoder().getVelocity());
@@ -139,7 +165,7 @@ public class Shooter{
         follower.setIdleMode(IdleMode.kCoast);
 
         leader.getEncoder().setPosition(0);
-        leader.setOpenLoopRampRate(40);     
+        leader.setOpenLoopRampRate(40);
         
         ballsShot = 0;
 
@@ -176,7 +202,7 @@ public class Shooter{
         timer.start();
     }
     /**
-     * Close the Shooter logger, run during disabledInit().
+     * Close the Shooter logger, call during disabledInit().
      */
     public void closeLogger(){
         logger.close();
@@ -185,7 +211,9 @@ public class Shooter{
      * Write shooter data to the log file.
      */
     private void writeData(){
-        double[] data = {Timer.getMatchTime(), timer.get(), leader.getEncoder().getVelocity(), speed, leader.getMotorTemperature(), leader.getOutputCurrent()};
+        double powered;
+        if(enabled){powered = 1;}else{powered = 0;}
+        double[] data = {Timer.getMatchTime(), timer.get(), leader.getEncoder().getVelocity(), speed, leader.getMotorTemperature(), leader.getOutputCurrent(), powered, P, I, D};
         logger.writeData(data);
     }
 }

@@ -16,6 +16,8 @@ public class RobotToggles{
 
     public static boolean logData = true;
 
+    public static boolean shooterPID = true;
+
     public static boolean drive = true;
     public static boolean useDrivePID = false; //use PID based drive controller
 }

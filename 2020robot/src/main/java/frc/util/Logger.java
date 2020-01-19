@@ -63,9 +63,11 @@ public class Logger {
     BufferedWriter log_file = null;
     boolean log_open = false;
     boolean errorSent = false;
+    private String fileAppend = "";
 
     public Logger(String dir){
         output_dir = "/U/data_captures/"+dir+"/";
+        fileAppend = dir;
     }
 
     public void setOutputDir(String dir){
@@ -94,7 +96,7 @@ public class Logger {
             log_write_index = 0;
 
             // Determine a unique file name
-            log_name = output_dir + "log_" + getDateTimeString() + ".csv";
+            log_name = output_dir + fileAppend + "_log_" + getDateTimeString() + ".csv";
 
             // Open File
             FileWriter fstream = new FileWriter(log_name, true);

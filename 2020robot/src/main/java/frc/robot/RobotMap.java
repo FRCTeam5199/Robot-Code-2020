@@ -14,6 +14,9 @@ public class RobotMap{
     public static final int shooterFollower = 6; 
     //turret
     public static final int turretYaw = 7;
+    //climber
+    public static final int climberA = 8;
+    public static final int climberB = 9;
 
     public static final int pigeon = 1;
 }

@@ -38,7 +38,7 @@ public class PDP{
      */
     public void update(){
         double[] data = {Timer.getMatchTime(), timer.get(), RobotController.getBatteryVoltage(), brownout()};
-        logger.writeData(data);
+        if(RobotToggles.logData){logger.writeData(data);}
     }
 
     private double brownout(){

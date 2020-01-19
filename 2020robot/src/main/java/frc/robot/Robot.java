@@ -12,6 +12,7 @@ import frc.drive.*;
 import frc.spinner.*;
 import frc.shooter.*;
 import frc.power.*;
+import frc.climber.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -25,6 +26,7 @@ public class Robot extends TimedRobot {
   Spinner spinner;
   Shooter shooter;
   PDP pdp;
+  Climber climber;
   
 
   /**
@@ -34,8 +36,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     driver = new Driver();
-    spinner = new Spinner();
     driver.init();
+
+    spinner = new Spinner();
     spinner.init();
 
     shooter = new Shooter();
@@ -43,6 +46,9 @@ public class Robot extends TimedRobot {
 
     pdp = new PDP();
     pdp.init();
+
+    climber = new Climber();
+    climber.init();
   }
 
   /**
@@ -61,6 +67,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     shooter.initLogger();
     pdp.initLogger();
+    
   }
 
   /**
@@ -71,14 +78,22 @@ public class Robot extends TimedRobot {
     
   }
 
+
+  @Override
+  public void teleopInit() {
+    shooter.initLogger();
+    pdp.initLogger();
+  }
   /**
    * This function is called periodically during operator control.
    */
   @Override
   public void teleopPeriodic() {
     driver.update();
+    pdp.update();
     //shooter.setDriveOmega(driver.omega());
-    //shooter.update();
+    shooter.update();
+    climber.update();
   }
 
   @Override
