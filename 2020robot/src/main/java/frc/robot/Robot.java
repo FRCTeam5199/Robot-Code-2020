@@ -27,6 +27,7 @@ public class Robot extends TimedRobot {
   Shooter shooter;
   PDP pdp;
   Climber climber;
+  Turret turret;
   
 
   /**
@@ -49,6 +50,9 @@ public class Robot extends TimedRobot {
 
     climber = new Climber();
     climber.init();
+
+    turret = new Turret();
+    turret.init();
   }
 
   /**
@@ -98,16 +102,18 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testInit() {
-    shooter.initLogger();
-    pdp.initLogger();
+    turret.resetEncoder();
+    //shooter.initLogger();
+    //pdp.initLogger();
   }
   /**
    * This function is called periodically during test mode.
    */
   @Override
   public void testPeriodic() {
-    shooter.update();
-    pdp.update();
+    turret.update();
+    //shooter.update();
+    //pdp.update();
   }
 
   @Override

@@ -22,7 +22,10 @@ public class RobotNumbers{
     public static final double driverWheelDiameter = 4;
 
     public static final double turretRotationSpeedMultiplier = 1; //multiplied to drive omega to calibrate the compensating rotation speed offset of the turret
-
+    public static final double turretP = 0;
+    public static final double turretI = 0;
+    public static final double turretD = 0;
+    
     public static final double triggerSensitivity = 0.25;
 
     //junk for motor debug code, change names if needed
