@@ -225,4 +225,45 @@ public class Driver{
         updatePigeon();
         return ypr[2]-startypr[2];
     }
+
+    //auto ----------------------------------------------------------------------------------------------------------------------
+    public void driveSidesToPos(double leftFeet, double rightFeet){
+        double leftSpeed, rightSpeed;
+        int reverser = 1;
+        double leftPos = leaderL.getEncoder().getPosition(); //motor rots > feet: encoder/(geardown)/(diameter*pi)/12
+        if(leftFeet<0 || rightFeet<0){
+            reverser = -1;
+        }
+
+        if(leftFeet>rightFeet){
+            leftSpeed = reverser;
+            rightSpeed = rightFeet/leftFeet;
+        }
+        else if(rightFeet>leftFeet){
+            rightSpeed = reverser;
+            leftSpeed = leftFeet/rightFeet;
+        }
+        else{ //distances are equal
+            rightSpeed = reverser;
+            leftSpeed = reverser;
+        }
+
+        if(reverser>0){ //if not driving in reverse
+            if(leftPos<leftFeet){
+                drivePID(leftSpeed, rightSpeed);
+            }
+            else{
+                drivePID(0, 0);
+            }
+        }
+        else if(reverser<0){
+            if(leftPos>leftFeet){
+                drivePID(leftSpeed, rightSpeed);
+            }
+            else{
+                drivePID(0, 0);
+            }
+        }
+    }
+
 }
