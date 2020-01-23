@@ -62,6 +62,11 @@ public class Driver{
 
     private boolean invert;
 
+    public int autoStage = 0;
+    public boolean autoComplete = false;
+    private double relLeft;
+    private double relRight;
+
     public Driver(){
         controller = new XBoxController(0);
         leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
@@ -87,6 +92,8 @@ public class Driver{
         resetPigeon();
         updatePigeon();
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
+        autoStage = 0;
+        autoComplete = false;
     }
 
     /**
@@ -125,8 +132,10 @@ public class Driver{
         
     }
 
+    
+
     /**
-     * Drive based on inputs -1 to 1.
+     * Drive each side based on inputs -1 to 1.
      */
     private void drive(double forward, double rotation){ 
         drivePure(adjustedDrive(forward), adjustedRotation(rotation));
@@ -227,21 +236,21 @@ public class Driver{
     }
 
     //auto ----------------------------------------------------------------------------------------------------------------------
-    public void driveSidesToPos(double leftFeet, double rightFeet){
+    public boolean driveSidesToPos(double leftFeet, double rightFeet){
         double leftSpeed, rightSpeed;
-        int reverser = 1;
-        double leftPos = leaderL.getEncoder().getPosition(); //motor rots > feet: encoder/(geardown)/(diameter*pi)/12
+        double reverser = RobotNumbers.autoSpeedMultiplier;
+        double leftPos = (leaderL.getEncoder().getPosition()-relLeft); //motor rots > feet: encoder/(geardown)*(diameter*pi)/12
         if(leftFeet<0 || rightFeet<0){
-            reverser = -1;
+            reverser = -1*RobotNumbers.autoSpeedMultiplier;
         }
 
         if(leftFeet>rightFeet){
             leftSpeed = reverser;
-            rightSpeed = rightFeet/leftFeet;
+            rightSpeed = rightFeet/leftFeet*reverser;
         }
         else if(rightFeet>leftFeet){
             rightSpeed = reverser;
-            leftSpeed = leftFeet/rightFeet;
+            leftSpeed = leftFeet/rightFeet*reverser;
         }
         else{ //distances are equal
             rightSpeed = reverser;
@@ -254,16 +263,45 @@ public class Driver{
             }
             else{
                 drivePID(0, 0);
+                return true;
             }
         }
-        else if(reverser<0){
+        else if(reverser<0){ //if driving in reverse
             if(leftPos>leftFeet){
                 drivePID(leftSpeed, rightSpeed);
             }
             else{
                 drivePID(0, 0);
+                return true;
             }
         }
+        return false;
     }
 
+    private void setRelativePositions(){
+        relLeft = leaderL.getEncoder().getPosition();
+        relRight = leaderR.getEncoder().getPosition();
+    }
+
+    public void updateAuto1(){
+        switch(autoStage){
+            case(0):
+                System.out.println("Stage 0");
+                if(driveSidesToPos(4, 8)){
+                    setRelativePositions();
+                    autoStage++;
+                }
+                break;
+            case(1):
+                System.out.println("Stage 1");
+                if(driveSidesToPos(8, 4)){
+                    setRelativePositions();
+                    autoStage++;
+                }
+                break;
+            default:
+                autoComplete = true;
+                break;    
+        }
+    }
 }

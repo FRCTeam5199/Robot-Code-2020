@@ -14,6 +14,8 @@ public class RobotNumbers{
     public static final double drivebaseI = 0;
     public static final double drivebaseD = 7e-4;
 
+    public static final double autoSpeedMultiplier = 0.5;
+
     public static final double wheelDiameter = 4; //wheel diameter, used literally nowhere
     public static final double maxMotorSpeed = 5000; //theoretical max motor speed
 
