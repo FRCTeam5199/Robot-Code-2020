@@ -30,6 +30,18 @@ import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 
+import java.io.IOException;
+
+import edu.wpi.first.wpilibj.AnalogGyro;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.SpeedController;
+import edu.wpi.first.wpilibj.TimedRobot;
+import jaci.pathfinder.Pathfinder;
+import jaci.pathfinder.PathfinderFRC;
+import jaci.pathfinder.Trajectory;
+import jaci.pathfinder.followers.EncoderFollower;
+
 import frc.vision.BallLimelight;
 
 import java.lang.Math;
@@ -69,8 +81,10 @@ public class Driver{
 
     public Driver(){
         controller = new XBoxController(0);
-        leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
-        leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
+        //leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
+        //leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
+        leaderL = new CANSparkMax(6, MotorType.kBrushed);
+        leaderR = new CANSparkMax(5, MotorType.kBrushed);
         followerL1 = new CANSparkMax(RobotMap.driveFollowerL, MotorType.kBrushless);
         followerR1 = new CANSparkMax(RobotMap.driveFollowerR, MotorType.kBrushless);
 
@@ -94,6 +108,7 @@ public class Driver{
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
         autoStage = 0;
         autoComplete = false;
+        setupPathfinderAuto();
     }
 
     /**
@@ -146,7 +161,7 @@ public class Driver{
      */
     public void drivePID(double left, double right){ 
         leftPID.setReference(left*RobotNumbers.maxMotorSpeed, ControlType.kVelocity);
-        rightPID.setReference(left*RobotNumbers.maxMotorSpeed, ControlType.kVelocity);
+        rightPID.setReference(right*RobotNumbers.maxMotorSpeed, ControlType.kVelocity);
     }
 
     /**
@@ -239,7 +254,10 @@ public class Driver{
     public boolean driveSidesToPos(double leftFeet, double rightFeet){
         double leftSpeed, rightSpeed;
         double reverser = RobotNumbers.autoSpeedMultiplier;
-        double leftPos = (leaderL.getEncoder().getPosition()-relLeft); //motor rots > feet: encoder/(geardown)*(diameter*pi)/12
+        double leftPos = (leaderL.getEncoder().getPosition()-relLeft)/6.8*(RobotNumbers.wheelDiameter*Math.PI)/12; //motor rots > feet: encoder/(geardown)*(diameter*pi)/12
+        double rightPos = (leaderR.getEncoder().getPosition()-relRight)/6.8*(RobotNumbers.wheelDiameter*Math.PI)/12;
+        SmartDashboard.putNumber("leftPos", leftPos);
+        SmartDashboard.putNumber("rightPos", rightPos);
         if(leftFeet<0 || rightFeet<0){
             reverser = -1*RobotNumbers.autoSpeedMultiplier;
         }
@@ -256,9 +274,10 @@ public class Driver{
             rightSpeed = reverser;
             leftSpeed = reverser;
         }
-
+        SmartDashboard.putNumber("lspeed", rightSpeed);
+        SmartDashboard.putNumber("rspeed", leftSpeed);
         if(reverser>0){ //if not driving in reverse
-            if(leftPos<leftFeet){
+            if(leftPos<leftFeet||rightPos<rightFeet){
                 drivePID(leftSpeed, rightSpeed);
             }
             else{
@@ -267,7 +286,7 @@ public class Driver{
             }
         }
         else if(reverser<0){ //if driving in reverse
-            if(leftPos>leftFeet){
+            if(leftPos>leftFeet||rightPos>rightFeet){
                 drivePID(leftSpeed, rightSpeed);
             }
             else{
@@ -281,6 +300,11 @@ public class Driver{
     private void setRelativePositions(){
         relLeft = leaderL.getEncoder().getPosition();
         relRight = leaderR.getEncoder().getPosition();
+    }
+
+    public void resetAuton(){
+        autoStage = 0;
+        autoComplete = false;
     }
 
     public void updateAuto1(){
@@ -299,9 +323,103 @@ public class Driver{
                     autoStage++;
                 }
                 break;
+            case(2):
+                System.out.println("Stage 2");
+                if(driveSidesToPos(4, 10)){
+                    setRelativePositions();
+                    autoStage++;
+                }
+                break;
             default:
                 autoComplete = true;
                 break;    
         }
+    }
+
+
+    private SpeedController m_left_motor;
+    private SpeedController m_right_motor;
+
+    private Encoder m_left_encoder;
+    private Encoder m_right_encoder;
+
+    private AnalogGyro m_gyro;
+
+    private EncoderFollower m_left_follower;
+    private EncoderFollower m_right_follower;
+
+    private Notifier m_follower_notifier;
+
+    private static final int k_ticks_per_rev = 2048;
+    private static final double k_wheel_diameter = 6.0 / 12.0;
+    private static final double k_max_velocity = 8;
+
+    private static final int k_left_channel = 0;
+    private static final int k_right_channel = 1;
+
+    private static final int k_left_encoder_port_a = 0;
+    private static final int k_left_encoder_port_b = 1;
+    private static final int k_right_encoder_port_a = 2;
+    private static final int k_right_encoder_port_b = 3;
+
+    private static final int k_gyro_port = 0;
+
+    private static final String k_path_name = "RunTowardsTrench";
+
+    /**
+     * run during robot init
+     */
+    public void setupPathfinderAuto(){
+        m_left_encoder = new Encoder(k_left_encoder_port_a, k_left_encoder_port_b);
+        m_right_encoder = new Encoder(k_right_encoder_port_a, k_right_encoder_port_b);
+    }
+    /**
+     * run during auton init
+     */
+    public void initPathfinderAuto(){
+        try {
+            Trajectory left_trajectory = PathfinderFRC.getTrajectory(k_path_name + ".left");
+            Trajectory right_trajectory = PathfinderFRC.getTrajectory(k_path_name + ".right");
+        
+            m_left_follower = new EncoderFollower(left_trajectory);
+            m_right_follower = new EncoderFollower(right_trajectory);
+        
+            m_left_follower.configureEncoder(m_left_encoder.get(), k_ticks_per_rev, k_wheel_diameter);
+            // You must tune the PID values on the following line!
+            m_left_follower.configurePIDVA(8.0, 0.0, 0.0, 1 / k_max_velocity, 0);
+        
+            m_right_follower.configureEncoder(m_right_encoder.get(), k_ticks_per_rev, k_wheel_diameter);
+            // You must tune the PID values on the following line!
+            m_right_follower.configurePIDVA(8.0, 0.0, 0.0, 1 / k_max_velocity, 0);
+        
+            m_follower_notifier = new Notifier(this::followPath);
+            m_follower_notifier.startPeriodic(left_trajectory.get(0).dt);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+    }
+
+    private void followPath() {
+        if (m_left_follower.isFinished() || m_right_follower.isFinished()) {
+          m_follower_notifier.stop();
+        } else {
+          double left_speed = m_left_follower.calculate(m_left_encoder.get());
+          double right_speed = m_right_follower.calculate(m_right_encoder.get());
+          double heading = yawRel();
+          double desired_heading = Pathfinder.r2d(m_left_follower.getHeading());
+          double heading_difference = Pathfinder.boundHalfDegrees(desired_heading - heading);
+          double turn =  0.8 * (-1.0/80.0) * heading_difference;
+          leaderL.set(left_speed + turn);
+          leaderR.set(right_speed - turn);
+        }
+    }
+
+    /**
+     * stop, and deactivate ~~robots~~ motors
+     */
+    public void stopMotors(){
+        m_follower_notifier.stop();
+        leaderL.set(0);
+        leaderR.set(0);
     }
 }

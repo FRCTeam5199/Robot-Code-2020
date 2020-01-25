@@ -69,8 +69,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    shooter.initLogger();
-    pdp.initLogger();
+    //driver.resetAuton();
+    driver.initPathfinderAuto();
+    //shooter.initLogger();
+    //pdp.initLogger();
     
   }
 
@@ -79,14 +81,15 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    
+    //driver.updateAuto1();
   }
 
 
   @Override
   public void teleopInit() {
-    shooter.initLogger();
-    pdp.initLogger();
+    driver.stopMotors();
+    //shooter.initLogger();
+    //pdp.initLogger();
   }
   /**
    * This function is called periodically during operator control.
