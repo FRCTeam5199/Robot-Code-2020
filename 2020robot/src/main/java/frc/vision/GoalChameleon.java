@@ -2,14 +2,15 @@ package frc.vision;
 
 import edu.wpi.first.networktables.*;
 
-public class BallChameleon{
+public class GoalChameleon{
     public NetworkTableEntry yaw;
     public NetworkTableEntry size;
     public NetworkTableEntry isValid;
+    public NetworkTableEntry pitch;
 
     public void init(){
         NetworkTableInstance table = NetworkTableInstance.getDefault();
-        NetworkTable cameraTable = table.getTable("chameleon-vision").getSubTable("PS3Eye");
+        NetworkTable cameraTable = table.getTable("chameleon-vision").getSubTable("GoalChameleon");
         yaw = cameraTable.getEntry("targetYaw");
         size = cameraTable.getEntry("targetFittedWidth");
         isValid = cameraTable.getEntry("isValid");

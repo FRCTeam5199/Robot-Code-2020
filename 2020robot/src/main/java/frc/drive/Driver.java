@@ -42,7 +42,7 @@ import jaci.pathfinder.PathfinderFRC;
 import jaci.pathfinder.Trajectory;
 import jaci.pathfinder.followers.EncoderFollower;
 
-import frc.vision.BallLimelight;
+import frc.vision.BallChameleon;
 
 import java.lang.Math;
 
@@ -51,7 +51,7 @@ public class Driver{
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.415));
     //DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
-    private BallLimelight limelight = new BallLimelight();
+    private BallChameleon chameleon = new BallChameleon();
 
     private final XBoxController controller;
     private CANSparkMax leaderL;
@@ -81,10 +81,8 @@ public class Driver{
 
     public Driver(){
         controller = new XBoxController(0);
-        //leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
-        //leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
-        leaderL = new CANSparkMax(6, MotorType.kBrushed);
-        leaderR = new CANSparkMax(5, MotorType.kBrushed);
+        leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
+        leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
         followerL1 = new CANSparkMax(RobotMap.driveFollowerL, MotorType.kBrushless);
         followerR1 = new CANSparkMax(RobotMap.driveFollowerR, MotorType.kBrushless);
 
@@ -98,7 +96,7 @@ public class Driver{
      * Initialize the Driver object.
      */
     public void init(){
-        limelight.init();
+        chameleon.init();
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
         leaderL.setInverted(true);
@@ -108,14 +106,14 @@ public class Driver{
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
         autoStage = 0;
         autoComplete = false;
-        setupPathfinderAuto();
+        //setupPathfinderAuto();
     }
 
     /**
      * Update the Driver object.
      */
     public void update(){
-        invert = controller.getButton(6);
+        invert = false;//controller.getButton(6);
         SmartDashboard.putBoolean("invert", invert);
         //drive(0.5,1);
         double turn = -controller.getStickRX();
@@ -126,21 +124,25 @@ public class Driver{
         else{
             drive = controller.getStickLY();
         }
-        pointBall = false;//controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
+        pointBall = controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
         chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
 
         //!!!!!
         //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
         if(pointBall){
-            double omegaOffset = limelight.getBallAngle();
-            double driveOffset = limelight.getBallSize();
+            double omegaOffset = -chameleon.getBallAngle();
+            double driveOffset = chameleon.getBallSize();
+            //System.out.println("attempting to aim");
             if(Math.abs(omegaOffset)>RobotNumbers.llTolerance){
+                //System.out.println("attempting to drive");
                 turn += omegaOffset/70; //pulled number out of nowhere, bigger value makes the limelight have a smaller effect
             }
             if(chaseBall){
                 drive += 70/driveOffset;
             }
+            //System.out.println("turn: "+turn);
         }
+        
         //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);
         drive(drive, turn);
         //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
