@@ -70,9 +70,10 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     //driver.resetAuton();
-    driver.initPathfinderAuto();
+    //driver.initPathfinderAuto();
     //shooter.initLogger();
     //pdp.initLogger();
+    driver.setupAuto();
     
   }
 
@@ -81,7 +82,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    //driver.updateAuto1();
+    driver.updateAuto1();
   }
 
 

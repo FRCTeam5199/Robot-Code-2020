@@ -73,7 +73,17 @@ public class Logger {
     public void setOutputDir(String dir){
         output_dir = "/U/data_captures/"+dir+"/";
     }
-
+    /**
+     * Small utility method, returns 0 or 1 based on a boolean
+     * @param bool - boolean to convert
+     * @return 0 if false, 1 if true
+     */
+    public static double boolToDouble(boolean bool){
+        if(bool){
+            return 1;
+        }
+        return 0;
+    }
     /**
      * Determines a unique file name, and opens a file in the data captures directory and writes the
      * initial lines to it.

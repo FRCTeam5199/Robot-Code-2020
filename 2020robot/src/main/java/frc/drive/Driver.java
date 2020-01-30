@@ -42,6 +42,7 @@ import jaci.pathfinder.Pathfinder;
 import jaci.pathfinder.PathfinderFRC;
 import jaci.pathfinder.Trajectory;
 import jaci.pathfinder.followers.EncoderFollower;
+import frc.util.Logger;
 
 import frc.vision.BallChameleon;
 
@@ -49,6 +50,7 @@ import java.lang.Math;
 
 public class Driver{
     private PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
+    private Logger logger = new Logger("drive");
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.415));
     DifferentialDriveOdometry odometer;
@@ -111,6 +113,9 @@ public class Driver{
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
         autoStage = 0;
         autoComplete = false;
+        String[] dataFields = {"X", "Y", "Flag"};
+        String[] units = {"Meters", "Meters", ""};
+        logger.init(dataFields, units);
         //setupPathfinderAuto();
     }
 
@@ -121,6 +126,10 @@ public class Driver{
         robotPose = odometer.update(new Rotation2d(Units.degreesToRadians(yawAbs())), getMetersLeft(), getMetersRight());
         robotTranslation = robotPose.getTranslation();
         robotRotation = robotPose.getRotation();
+        
+        //log position and left bumper(?) presses(useful for getting auton points)
+        double[] dataElements = {robotTranslation.getX(), robotTranslation.getY(), Logger.boolToDouble(controller.getButtonDown(5))};
+        logger.writeData(dataElements);
 
         invert = false;//controller.getButton(6);
         SmartDashboard.putBoolean("invert", invert);
@@ -333,13 +342,14 @@ public class Driver{
     }
 
     /**
-     * the waypoint coordinates are in meters and i dont like it
-     * @param x
-     * @param y
+     * "Attack"(drive towards) a point on the field. Units are in meters and its scary.
+     * @param targetX - x position of the waypoint in meters
+     * @param targetY - y position of the waypoint in meters
+     * @return Boolean representing whether the robot is within tolerance of the waypoint or not.
      */
-    public boolean attackPoint(double x, double y){
-        double xDiff = x-robotTranslation.getX();
-        double yDiff = y-robotTranslation.getY();
+    public boolean attackPoint(double targetX, double targetY){
+        double xDiff = targetX-robotTranslation.getX();
+        double yDiff = targetY-robotTranslation.getY();
         double angleTo = Math.atan(xDiff/yDiff);
         //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
         //wait is this just pure pursuit made by an idiot?
@@ -360,7 +370,9 @@ public class Driver{
         SmartDashboard.putBoolean("inTolerance", inTolerance);
         return inTolerance;
     }
-    
+    /**
+     * bad, don't use
+     */
     public boolean driveSidesToPos(double leftFeet, double rightFeet){
         double leftSpeed, rightSpeed;
         double reverser = RobotNumbers.autoSpeedMultiplier;
@@ -418,24 +430,29 @@ public class Driver{
     }
 
     public void updateAuto1(){
+        robotPose = odometer.update(new Rotation2d(Units.degreesToRadians(yawAbs())), getMetersLeft(), getMetersRight());
+        robotTranslation = robotPose.getTranslation();
+        robotRotation = robotPose.getRotation();
+        double[] dataElements = {robotTranslation.getX(), robotTranslation.getY(), 0};
+        logger.writeData(dataElements);
         switch(autoStage){
             case(0):
                 System.out.println("Stage 0");
-                if(driveSidesToPos(4, 8)){
+                if(attackPoint(1, 2)){
                     setRelativePositions();
                     autoStage++;
                 }
                 break;
             case(1):
                 System.out.println("Stage 1");
-                if(driveSidesToPos(8, 4)){
+                if(attackPoint(0, 4)){
                     setRelativePositions();
                     autoStage++;
                 }
                 break;
             case(2):
                 System.out.println("Stage 2");
-                if(driveSidesToPos(4, 10)){
+                if(attackPoint(0,5)){
                     setRelativePositions();
                     autoStage++;
                 }
