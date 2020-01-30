@@ -88,7 +88,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    driver.stopMotors();
+    //driver.stopMotors();
     //shooter.initLogger();
     //pdp.initLogger();
   }
