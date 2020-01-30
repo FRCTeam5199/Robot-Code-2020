@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.util.Units;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 
 import java.io.IOException;
 
@@ -47,13 +48,13 @@ import frc.vision.BallChameleon;
 import java.lang.Math;
 
 public class Driver{
-    private final PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
+    private PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.415));
-    //DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
+    DifferentialDriveOdometry odometer;
     private BallChameleon chameleon = new BallChameleon();
 
-    private final XBoxController controller;
+    private XBoxController controller;
     private CANSparkMax leaderL;
     private CANSparkMax followerL1;
     private CANSparkMax leaderR;
@@ -78,6 +79,10 @@ public class Driver{
     public boolean autoComplete = false;
     private double relLeft;
     private double relRight;
+
+    public Pose2d robotPose;
+    public Translation2d robotTranslation;
+    public Rotation2d robotRotation;
 
     public Driver(){
         controller = new XBoxController(0);
@@ -113,6 +118,10 @@ public class Driver{
      * Update the Driver object.
      */
     public void update(){
+        robotPose = odometer.update(new Rotation2d(Units.degreesToRadians(yawAbs())), getMetersLeft(), getMetersRight());
+        robotTranslation = robotPose.getTranslation();
+        robotRotation = robotPose.getRotation();
+
         invert = false;//controller.getButton(6);
         SmartDashboard.putBoolean("invert", invert);
         //drive(0.5,1);
@@ -252,7 +261,106 @@ public class Driver{
         return ypr[2]-startypr[2];
     }
 
-    //auto ----------------------------------------------------------------------------------------------------------------------
+    //position conversion -------------------------------------------------------------------------------------------------------
+    private double wheelCircumference(){
+        return RobotNumbers.wheelDiameter*Math.PI;
+    }
+
+    //getRotations - get wheel rotations on encoder
+    public double getRotationsLeft(){
+        return -(leaderL.getEncoder().getPosition())/6.8;
+    }
+    public double getRotationsRight(){
+        return (leaderR.getEncoder().getPosition())/6.8;
+    }
+
+    //getRPM - get wheel RPM from encoder
+    public double getRPMLeft(){
+        return -(leaderL.getEncoder().getVelocity())/6.8;
+    }
+    public double getRPMRight(){
+        return (leaderR.getEncoder().getVelocity())/6.8;
+    }
+
+    //getIPS - get wheel IPS from encoder
+    public double getIPSLeft(){
+        return (getRPMLeft()*wheelCircumference())/60;
+    }
+    public double getIPSRight(){
+        return (getRPMRight()*wheelCircumference())/60;
+    }
+
+    //getFPS - get wheel FPS from encoder
+    public double getFPSLeft(){
+        return getIPSLeft()/12;
+    }
+    public double getFPSRight(){
+        return getIPSRight()/12;
+    }
+
+    //getInches - get wheel inches traveled
+    public double getInchesLeft(){
+        return (getRotationsLeft()*wheelCircumference());
+    }
+    public double getInchesRight(){
+        return (getRotationsRight()*wheelCircumference());
+    }
+
+    //getFeet - get wheel feet traveled
+    public double getFeetLeft(){
+        return (getRotationsLeft()*wheelCircumference()/12);
+    }
+    public double getFeetRight(){
+        return (getRotationsRight()*wheelCircumference()/12);
+    }
+
+    //getMeters - get wheel meters traveled
+    public double getMetersLeft(){
+        return Units.feetToMeters(getFeetLeft());
+    }
+    public double getMetersRight(){
+        return Units.feetToMeters(getFeetRight());
+    }
+
+    //auto ----------------------------------------------------------------------------------------------------------------------    
+    private PIDController headingPID;
+    /**
+     * set stuff up for auto
+     */
+    public void setupAuto(){
+        headingPID = new PIDController(RobotNumbers.headingP, RobotNumbers.headingI, RobotNumbers.headingD);
+        odometer = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
+    }
+
+    /**
+     * the waypoint coordinates are in meters and i dont like it
+     * @param x
+     * @param y
+     */
+    public boolean attackPoint(double x, double y){
+        double xDiff = x-robotTranslation.getX();
+        double yDiff = y-robotTranslation.getY();
+        double angleTo = Math.atan(xDiff/yDiff);
+        //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
+        //wait is this just pure pursuit made by an idiot?
+        double rotationOffset = headingPID.calculate(yawAbs(), angleTo)*RobotNumbers.autoRotationMultiplier;
+        boolean xInTolerance = Math.abs(xDiff) < RobotNumbers.autoTolerance;
+        boolean yInTolerance = Math.abs(yDiff) < RobotNumbers.autoTolerance;
+        boolean inTolerance = yInTolerance && xInTolerance;
+        if(!inTolerance){
+            drive(RobotNumbers.autoSpeed, rotationOffset);
+        }
+        else{
+            drive(0,0);
+        }
+        SmartDashboard.putNumber("xDiff", xDiff);
+        SmartDashboard.putNumber("yDiff", yDiff);
+        SmartDashboard.putNumber("angleTo", angleTo);
+        SmartDashboard.putNumber("rotationOffset", rotationOffset);
+        SmartDashboard.putBoolean("inTolerance", inTolerance);
+        return inTolerance;
+    }
+    
     public boolean driveSidesToPos(double leftFeet, double rightFeet){
         double leftSpeed, rightSpeed;
         double reverser = RobotNumbers.autoSpeedMultiplier;
@@ -352,21 +460,21 @@ public class Driver{
 
     private Notifier m_follower_notifier;
 
-    private static final int k_ticks_per_rev = 2048;
-    private static final double k_wheel_diameter = 6.0 / 12.0;
-    private static final double k_max_velocity = 8;
+    private static int k_ticks_per_rev = 2048;
+    private static double k_wheel_diameter = 6.0 / 12.0;
+    private static double k_max_velocity = 8;
 
-    private static final int k_left_channel = 0;
-    private static final int k_right_channel = 1;
+    private static int k_left_channel = 0;
+    private static int k_right_channel = 1;
 
-    private static final int k_left_encoder_port_a = 0;
-    private static final int k_left_encoder_port_b = 1;
-    private static final int k_right_encoder_port_a = 2;
-    private static final int k_right_encoder_port_b = 3;
+    private static int k_left_encoder_port_a = 0;
+    private static int k_left_encoder_port_b = 1;
+    private static int k_right_encoder_port_a = 2;
+    private static int k_right_encoder_port_b = 3;
 
-    private static final int k_gyro_port = 0;
+    private static int k_gyro_port = 0;
 
-    private static final String k_path_name = "RunTowardsTrench";
+    private static String k_path_name = "RunTowardsTrench";
 
     /**
      * run during robot init

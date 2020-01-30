@@ -9,7 +9,7 @@ public class BallChameleon{
 
     public void init(){
         NetworkTableInstance table = NetworkTableInstance.getDefault();
-        NetworkTable cameraTable = table.getTable("chameleon-vision").getSubTable("PS3Eye");
+        NetworkTable cameraTable = table.getTable("chameleon-vision").getSubTable("BallChameleon");
         yaw = cameraTable.getEntry("targetYaw");
         size = cameraTable.getEntry("targetFittedWidth");
         isValid = cameraTable.getEntry("isValid");
