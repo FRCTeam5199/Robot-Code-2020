@@ -125,5 +125,6 @@ public class Robot extends TimedRobot {
   public void disabledInit() {
     shooter.closeLogger();
     pdp.closeLogger();
+    driver.closeLogger();
   }
 }

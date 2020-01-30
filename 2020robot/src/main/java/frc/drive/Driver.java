@@ -52,7 +52,7 @@ public class Driver{
     private PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
     private Logger logger = new Logger("drive");
     //wheelbase 27"
-    private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.415));
+    private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.2));
     DifferentialDriveOdometry odometer;
     private BallChameleon chameleon = new BallChameleon();
 
@@ -113,9 +113,6 @@ public class Driver{
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
         autoStage = 0;
         autoComplete = false;
-        String[] dataFields = {"X", "Y", "Flag"};
-        String[] units = {"Meters", "Meters", ""};
-        logger.init(dataFields, units);
         //setupPathfinderAuto();
     }
 
@@ -148,16 +145,16 @@ public class Driver{
         //!!!!!
         //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
         if(pointBall){
-            double omegaOffset = -chameleon.getBallAngle();
+            double angleOffset = -chameleon.getBallAngle();
             double driveOffset = chameleon.getBallSize();
             //System.out.println("attempting to aim");
-            if(Math.abs(omegaOffset)>RobotNumbers.llTolerance){
+            if(Math.abs(angleOffset)>RobotNumbers.llTolerance){
                 //System.out.println("attempting to drive");
-                turn += omegaOffset/70; //pulled number out of nowhere, bigger value makes the limelight have a smaller effect
+                turn += angleOffset/70; //pulled number out of nowhere, bigger value makes the limelight have a smaller effect
             }
-            if(chaseBall){
-                drive += 70/driveOffset;
-            }
+            // if(chaseBall){
+            //     drive += 70/driveOffset;
+            // }
             //System.out.println("turn: "+turn);
         }
         
@@ -339,6 +336,9 @@ public class Driver{
     public void setupAuto(){
         headingPID = new PIDController(RobotNumbers.headingP, RobotNumbers.headingI, RobotNumbers.headingD);
         odometer = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
+        String[] dataFields = {"X", "Y", "Flag"};
+        String[] units = {"Meters", "Meters", ""};
+        logger.init(dataFields, units);
     }
 
     /**
@@ -548,5 +548,9 @@ public class Driver{
         m_follower_notifier.stop();
         leaderL.set(0);
         leaderR.set(0);
+    }
+
+    public void closeLogger(){
+        logger.close();
     }
 }

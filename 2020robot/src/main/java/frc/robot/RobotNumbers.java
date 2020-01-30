@@ -25,7 +25,7 @@ public class RobotNumbers{
      */
     public static final double autoTolerance = 0.1;
 
-    public static final double wheelDiameter = 4; //update: now it's used once
+    public static final double wheelDiameter = 6; //update: now it's used once
     public static final double maxMotorSpeed = 5000; //theoretical max motor speed
 
     public static final double motorPulleySize = 24;
