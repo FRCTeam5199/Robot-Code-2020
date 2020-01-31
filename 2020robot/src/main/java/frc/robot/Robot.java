@@ -28,6 +28,7 @@ public class Robot extends TimedRobot {
   PDP pdp;
   Climber climber;
   Turret turret;
+  int autoStage;
   
 
   /**
@@ -74,7 +75,7 @@ public class Robot extends TimedRobot {
     //shooter.initLogger();
     //pdp.initLogger();
     driver.setupAuto();
-    
+    autoStage = 0;
   }
 
   /**
@@ -82,7 +83,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    driver.updateAuto1();
+    //driver.updateAuto1();
+    updateAuto(Autos.testAuto);
   }
 
 
@@ -97,7 +99,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    driver.update();
+    driver.updateTeleop();
     pdp.update();
     //shooter.setDriveOmega(driver.omega());
     shooter.update();
@@ -115,7 +117,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
-    driver.update();
+    driver.updateTest();
     //turret.update();
     //shooter.update();
     //pdp.update();
@@ -126,5 +128,34 @@ public class Robot extends TimedRobot {
     shooter.closeLogger();
     pdp.closeLogger();
     driver.closeLogger();
+  }
+
+  public void updateAuto(double[][] auto){
+    driver.updateGeneric();
+    if(auto[autoStage][3]==-1){
+      if(driver.attackPoint(auto[autoStage][0], auto[autoStage][1], auto[autoStage][2])){autoStage++;}
+    }
+    else if(auto[autoStage][3]==-2){
+      //do nothing and don't advance the auton stage, as -2 signifies the end of the auton.
+    }
+    else{
+      if(performSpecialAction(auto[autoStage][3])){autoStage++;}
+    }
+  }
+
+  public boolean performSpecialAction(double actionToPerform){
+    boolean complete = false;
+    int action = (int)actionToPerform; //done because im lazy
+    switch(action){
+      case(0):
+        complete = specialAction0();
+        break;
+    }
+    return complete;
+  }
+
+  private boolean specialAction0(){
+    System.out.println("SPECIAL ACTION 0");
+    return true;
   }
 }

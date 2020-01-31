@@ -51,6 +51,7 @@ import java.lang.Math;
 public class Driver{
     private PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
     private Logger logger = new Logger("drive");
+    private Logger posLogger = new Logger("positions");
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.2));
     DifferentialDriveOdometry odometer;
@@ -117,17 +118,21 @@ public class Driver{
     }
 
     /**
-     * Update the Driver object.
+     * Meant to be run during all periodic modes except robotPeriodic().
      */
-    public void update(){
+    public void updateGeneric(){
         robotPose = odometer.update(new Rotation2d(Units.degreesToRadians(yawAbs())), getMetersLeft(), getMetersRight());
         robotTranslation = robotPose.getTranslation();
         robotRotation = robotPose.getRotation();
-        
-        //log position and left bumper(?) presses(useful for getting auton points)
         double[] dataElements = {robotTranslation.getX(), robotTranslation.getY(), Logger.boolToDouble(controller.getButtonDown(5))};
         logger.writeData(dataElements);
+    }
 
+    /**
+     * Update the Driver object(for teleop mode).
+     */
+    public void updateTeleop(){
+        updateGeneric();
         invert = false;//controller.getButton(6);
         SmartDashboard.putBoolean("invert", invert);
         //drive(0.5,1);
@@ -162,6 +167,47 @@ public class Driver{
         drive(drive, turn);
         //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
         
+    }
+
+    public void updateTest(){
+        updateGeneric();
+        //log position on left bumper(?) presses(useful for getting auton points)
+        double[] dataElements = {robotTranslation.getX(), robotTranslation.getY(), Logger.boolToDouble(controller.getButtonDown(5))};
+        if(controller.getButtonDown(5)){posLogger.writeData(dataElements);}
+
+        invert = false;//controller.getButton(6);
+        SmartDashboard.putBoolean("invert", invert);
+        //drive(0.5,1);
+        double turn = -controller.getStickRX();
+        double drive;
+        if(invert){
+            drive = -controller.getStickLY();
+        }
+        else{
+            drive = controller.getStickLY();
+        }
+        pointBall = controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
+        chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
+
+        //!!!!!
+        //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
+        if(pointBall){
+            double angleOffset = -chameleon.getBallAngle();
+            double driveOffset = chameleon.getBallSize();
+            //System.out.println("attempting to aim");
+            if(Math.abs(angleOffset)>RobotNumbers.llTolerance){
+                //System.out.println("attempting to drive");
+                turn += angleOffset/70; //pulled number out of nowhere, bigger value makes the limelight have a smaller effect
+            }
+            // if(chaseBall){
+            //     drive += 70/driveOffset;
+            // }
+            //System.out.println("turn: "+turn);
+        }
+        
+        //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);
+        drive(drive, turn);
+        //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
     }
 
     
@@ -329,6 +375,7 @@ public class Driver{
 
     //auto ----------------------------------------------------------------------------------------------------------------------    
     private PIDController headingPID;
+    private int arrayAutoStage;
     /**
      * set stuff up for auto
      */
@@ -338,6 +385,7 @@ public class Driver{
         String[] dataFields = {"X", "Y", "Flag"};
         String[] units = {"Meters", "Meters", ""};
         logger.init(dataFields, units);
+        arrayAutoStage = 0;
     }
 
     /**
@@ -346,7 +394,7 @@ public class Driver{
      * @param targetY - y position of the waypoint in meters
      * @return Boolean representing whether the robot is within tolerance of the waypoint or not.
      */
-    public boolean attackPoint(double targetX, double targetY){
+    public boolean attackPoint(double targetX, double targetY, double speed){
         double xDiff = targetX-robotTranslation.getX();
         double yDiff = targetY-robotTranslation.getY();
         double angleTo = Math.atan(xDiff/yDiff);
@@ -357,7 +405,7 @@ public class Driver{
         boolean yInTolerance = Math.abs(yDiff) < RobotNumbers.autoTolerance;
         boolean inTolerance = yInTolerance && xInTolerance;
         if(!inTolerance){
-            drive(RobotNumbers.autoSpeed, rotationOffset);
+            drive(RobotNumbers.autoSpeed*speed, rotationOffset);
         }
         else{
             drive(0,0);
@@ -437,21 +485,21 @@ public class Driver{
         switch(autoStage){
             case(0):
                 System.out.println("Stage 0");
-                if(attackPoint(1, 2)){
+                if(attackPoint(1, 2, 1)){
                     setRelativePositions();
                     autoStage++;
                 }
                 break;
             case(1):
                 System.out.println("Stage 1");
-                if(attackPoint(0, 4)){
+                if(attackPoint(0, 4, 1)){
                     setRelativePositions();
                     autoStage++;
                 }
                 break;
             case(2):
                 System.out.println("Stage 2");
-                if(attackPoint(0,5)){
+                if(attackPoint(0 ,5, 1)){
                     setRelativePositions();
                     autoStage++;
                 }
@@ -548,7 +596,13 @@ public class Driver{
     //     leaderR.set(0);
     // }
 
+    public void initPoseLogger(){
+        String[] dataFields = {"X", "Y", "Flag"};
+        String[] units = {"Meters", "Meters", ""};
+        posLogger.init(dataFields, units);
+    }
     public void closeLogger(){
         logger.close();
+        posLogger.close();
     }
 }
