@@ -18,6 +18,8 @@ public class Autos{
         {-3.5, 1.3, 1, -1}, //x, y, speed, special move //r0
         {-7, 5.25, 1, -1}, //r1
         {-11.5, 8, 1, -1}, //r2
+        {-10, 11, 1, -1},
+        {0, 0, 1, -1},
         {0,0, 0, -2}  //actual data in terminator doesn't matter at all
     };
 }

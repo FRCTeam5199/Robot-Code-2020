@@ -493,31 +493,32 @@ public class Driver{
      * @return Boolean representing whether the robot is within tolerance of the waypoint or not.
      */
     public boolean attackPoint(double targetX, double targetY, double speed){
-        double xDiff = targetX-robotTranslation.getY();
-        double yDiff = targetY-robotTranslation.getX();
+        double xDiff = targetX-fieldX();
+        double yDiff = targetY-fieldY();
         double angleTarget = Math.toDegrees(Math.atan2(yDiff, xDiff));
         //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
         //wait is this just pure pursuit made by an idiot?
-        double rotationOffset = -headingPID.calculate(yawWraparound(), angleTarget);
+        double rotationOffset = headingPID.calculate(headingErrorWraparound(targetX, targetY), 0);
         boolean xInTolerance = Math.abs(xDiff) < RobotNumbers.autoTolerance;
         boolean yInTolerance = Math.abs(yDiff) < RobotNumbers.autoTolerance;
         boolean inTolerance = yInTolerance && xInTolerance;
         if(!inTolerance){
-            //drive(RobotNumbers.autoSpeed*speed, rotationOffset*RobotNumbers.autoRotationMultiplier);
-            leaderL.set(0);
-            leaderR.set(0);
+            drive(RobotNumbers.autoSpeed*speed, rotationOffset*RobotNumbers.autoRotationMultiplier);
+            // leaderL.set(0);
+            // leaderR.set(0);
         }
         else{
-            //drive(0,0);
-            leaderL.set(0);
-            leaderR.set(0);
+            drive(0,0);
+            // leaderL.set(0);
+            // leaderR.set(0);
         }
         put("x", fieldX());
         put("y", fieldY());
         put("head", fieldHeading());
         put("angleTo", angleToPos(x.getDouble(0), y.getDouble(0)));
-        put("error", headingError(x.getDouble(0), y.getDouble(0)));
+        // put("error", headingError(x.getDouble(0), y.getDouble(0)));
         put("wrap", headingErrorWraparound(x.getDouble(0), y.getDouble(0)));
+        put("rotationOffset", rotationOffset);
         // SmartDashboard.putNumber("xDiff", xDiff);
         // SmartDashboard.putNumber("yDiff", yDiff);
         // SmartDashboard.putNumber("xpos", robotTranslation.getY());
