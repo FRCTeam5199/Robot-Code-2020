@@ -87,13 +87,13 @@ public class Robot extends TimedRobot {
     updateAuto(Autos.testAuto);
   }
 
-
   @Override
   public void teleopInit() {
     //driver.stopMotors();
     //shooter.initLogger();
     //pdp.initLogger();
   }
+
   /**
    * This function is called periodically during operator control.
    */
@@ -107,7 +107,7 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void testInit() {
+  public void testInit() { 
     //turret.resetEncoder();
     //shooter.initLogger();
     //pdp.initLogger();

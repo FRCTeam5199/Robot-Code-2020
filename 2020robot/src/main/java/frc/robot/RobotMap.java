@@ -18,5 +18,5 @@ public class RobotMap{
     public static final int climberA = 8;
     public static final int climberB = 9;
 
-    public static final int pigeon = 1;
+    public static final int pigeon = 10;
 }

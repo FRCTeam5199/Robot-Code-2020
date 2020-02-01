@@ -69,7 +69,7 @@ public class Driver{
     private double targetHeading;
 
     public double[] ypr = new double[3];
-    private double[] startypr = new double[3];
+    public double[] startypr = new double[3];
 
     public double currentOmega;
 
@@ -278,12 +278,14 @@ public class Driver{
     }
     
     //pigeon code ------------------------------------------------------------------------------------------------------------------
+    private double startYaw;
     public void updatePigeon(){
         pigeon.getYawPitchRoll(ypr);
     }
     public void resetPigeon(){
         updatePigeon();
         startypr = ypr;
+        startYaw = yawAbs();
     }
     //absolute ypr -----------------------------------------------------------------------------------------------------------------
     public double yawAbs(){ //return absolute yaw of pigeon
@@ -301,7 +303,7 @@ public class Driver{
     //relative ypr ----------------------------------------------------------------------------------------------------------------
     public double yawRel(){ //return relative(to start) yaw of pigeon
         updatePigeon();
-        return ypr[0]-startypr[0];
+        return -(ypr[0]-startYaw);
     }
     public double pitchRel(){ //return relative pitch of pigeon
         updatePigeon();
@@ -311,6 +313,16 @@ public class Driver{
         updatePigeon();
         return ypr[2]-startypr[2];
     }
+    public double adjustedYaw(){
+        return 90-yawRel();
+    }
+    public double yawWraparound(){
+        double yaw = adjustedYaw();
+        while(yaw>=360){
+            yaw -= 360;
+        }
+        return yaw;
+    }
 
     //position conversion -------------------------------------------------------------------------------------------------------
     private double wheelCircumference(){
@@ -319,7 +331,7 @@ public class Driver{
 
     //getRotations - get wheel rotations on encoder
     public double getRotationsLeft(){
-        return -(leaderL.getEncoder().getPosition())/6.8;
+        return (leaderL.getEncoder().getPosition())/6.8;
     }
     public double getRotationsRight(){
         return (leaderR.getEncoder().getPosition())/6.8;
@@ -327,7 +339,7 @@ public class Driver{
 
     //getRPM - get wheel RPM from encoder
     public double getRPMLeft(){
-        return -(leaderL.getEncoder().getVelocity())/6.8;
+        return (leaderL.getEncoder().getVelocity())/6.8;
     }
     public double getRPMRight(){
         return (leaderR.getEncoder().getVelocity())/6.8;
@@ -375,7 +387,7 @@ public class Driver{
 
     //auto ----------------------------------------------------------------------------------------------------------------------    
     private PIDController headingPID;
-    private int arrayAutoStage;
+    //private int arrayAutoStage;
     /**
      * set stuff up for auto
      */
@@ -385,7 +397,10 @@ public class Driver{
         String[] dataFields = {"X", "Y", "Flag"};
         String[] units = {"Meters", "Meters", ""};
         logger.init(dataFields, units);
-        arrayAutoStage = 0;
+        resetPigeon();
+        leaderL.getEncoder().setPosition(0);
+        leaderR.getEncoder().setPosition(0);
+        //arrayAutoStage = 0;
     }
 
     /**
@@ -395,30 +410,36 @@ public class Driver{
      * @return Boolean representing whether the robot is within tolerance of the waypoint or not.
      */
     public boolean attackPoint(double targetX, double targetY, double speed){
-        double xDiff = targetX-robotTranslation.getX();
-        double yDiff = targetY-robotTranslation.getY();
-        double angleTo = Math.atan(xDiff/yDiff);
+        double xDiff = targetX+robotTranslation.getY();
+        double yDiff = targetY-robotTranslation.getX();
+        double angleTarget = Math.toDegrees(Math.atan2(yDiff, xDiff));
         //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
         //wait is this just pure pursuit made by an idiot?
-        double rotationOffset = headingPID.calculate(yawAbs(), angleTo)*RobotNumbers.autoRotationMultiplier;
+        double rotationOffset = -headingPID.calculate(adjustedYaw(), angleTarget);
         boolean xInTolerance = Math.abs(xDiff) < RobotNumbers.autoTolerance;
         boolean yInTolerance = Math.abs(yDiff) < RobotNumbers.autoTolerance;
         boolean inTolerance = yInTolerance && xInTolerance;
         if(!inTolerance){
-            drive(RobotNumbers.autoSpeed*speed, rotationOffset);
+            //drive(RobotNumbers.autoSpeed*speed, rotationOffset*RobotNumbers.autoRotationMultiplier);
         }
         else{
-            drive(0,0);
+            //drive(0,0);
         }
         SmartDashboard.putNumber("xDiff", xDiff);
         SmartDashboard.putNumber("yDiff", yDiff);
-        SmartDashboard.putNumber("angleTo", angleTo);
-        SmartDashboard.putNumber("rotationOffset", rotationOffset);
+        SmartDashboard.putNumber("angleTarget", angleTarget);
+        SmartDashboard.putNumber("heading", adjustedYaw());
+        SmartDashboard.putNumber("abs", yawAbs());
+        SmartDashboard.putNumber("rotationOffset", rotationOffset); //number being fed into drive()
+        SmartDashboard.putNumber("rotationDifference", -(angleTarget-adjustedYaw()));
         SmartDashboard.putBoolean("inTolerance", inTolerance);
+        SmartDashboard.putNumber("left", getMetersLeft());
+        SmartDashboard.putNumber("right", getMetersRight());
         return inTolerance;
     }
+
     /**
-     * bad, don't use
+     * arc follower code(bad, don't use)
      */
     public boolean driveSidesToPos(double leftFeet, double rightFeet){
         double leftSpeed, rightSpeed;
@@ -466,16 +487,25 @@ public class Driver{
         return false;
     }
 
+    /**
+     * only used for the garbage drive arc code
+     */
     private void setRelativePositions(){
         relLeft = leaderL.getEncoder().getPosition();
         relRight = leaderR.getEncoder().getPosition();
     }
 
+    /**
+     * used literally nowhere, resets auto stage to 0 and completion to false but 
+     * like, auto can just kinda chill at the end with my new array stuff?
+     */
     public void resetAuton(){
         autoStage = 0;
         autoComplete = false;
     }
-
+    /**
+     * shouldn't be needed anymore
+     */
     public void updateAuto1(){
         robotPose = odometer.update(new Rotation2d(Units.degreesToRadians(yawAbs())), getMetersLeft(), getMetersRight());
         robotTranslation = robotPose.getTranslation();
@@ -596,11 +626,18 @@ public class Driver{
     //     leaderR.set(0);
     // }
 
+    /**
+     * initialize special logger for logging position when the left bumper is pressed in test mode
+     */
     public void initPoseLogger(){
         String[] dataFields = {"X", "Y", "Flag"};
         String[] units = {"Meters", "Meters", ""};
         posLogger.init(dataFields, units);
     }
+    
+    /**
+     * close all loggers
+     */
     public void closeLogger(){
         logger.close();
         posLogger.close();

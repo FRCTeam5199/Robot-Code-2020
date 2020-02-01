@@ -9,7 +9,7 @@ public class Autos{
         {0,4, 1, -1}, //r1
         {0,5, 1, -1}, //r2
         {2,7, 1, -1}, //r3
-        {2,7, 1, 0},   //r4
+        {0,0, 0, 0},  //actual data in special command doesn't matter at all
         {0,0, 0, -2}  //actual data in terminator doesn't matter at all
     };
 }

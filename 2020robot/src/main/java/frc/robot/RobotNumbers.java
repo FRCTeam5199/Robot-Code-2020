@@ -14,12 +14,12 @@ public class RobotNumbers{
     public static final double drivebaseI = 0;
     public static final double drivebaseD = 7e-4;
 
-    public static final double headingP = 0.5;
+    public static final double headingP = 0.05;
     public static final double headingI = 0;
     public static final double headingD = 0;
     public static final double autoSpeedMultiplier = 3;
-    public static final double autoSpeed = 0.5;
-    public static final double autoRotationMultiplier = 0.1;
+    public static final double autoSpeed = 0.0;
+    public static final double autoRotationMultiplier = 0.0;
     /**
      * error tolerance between actual X and Y positions and waypoint X and Y positions
      */
