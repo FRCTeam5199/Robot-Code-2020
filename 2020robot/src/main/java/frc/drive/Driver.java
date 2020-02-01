@@ -46,6 +46,9 @@ import frc.util.Logger;
 
 import frc.vision.BallChameleon;
 
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.networktables.*;
+
 import java.lang.Math;
 
 public class Driver{
@@ -303,7 +306,7 @@ public class Driver{
     //relative ypr ----------------------------------------------------------------------------------------------------------------
     public double yawRel(){ //return relative(to start) yaw of pigeon
         updatePigeon();
-        return -(ypr[0]-startYaw);
+        return (ypr[0]-startYaw);
     }
     public double pitchRel(){ //return relative pitch of pigeon
         updatePigeon();
@@ -323,6 +326,22 @@ public class Driver{
                 yaw -= 360;
             }
             else if(yaw<0){
+                yaw += 360;
+            }
+        }
+        return yaw;
+    }
+    /**
+     * get the heading from -180 to 180, negative CCW
+     * @return heading based on the front of the bot at start
+     */
+    public double yawWraparoundAhead(){
+        double yaw = yawRel();
+        while(180<yaw || yaw<-180){
+            if(yaw>180){
+                yaw -= 360;
+            }
+            else if(yaw<-180){
                 yaw += 360;
             }
         }
@@ -393,6 +412,10 @@ public class Driver{
     //auto ----------------------------------------------------------------------------------------------------------------------    
     private PIDController headingPID;
     //private int arrayAutoStage;
+    private ShuffleboardTab tab = Shuffleboard.getTab("auto");
+    private NetworkTableEntry x = tab.add("x position", 0).getEntry();
+    private NetworkTableEntry y = tab.add("y position", 0).getEntry();
+
     /**
      * set stuff up for auto
      */
@@ -405,10 +428,64 @@ public class Driver{
         resetPigeon();
         leaderL.getEncoder().setPosition(0);
         leaderR.getEncoder().setPosition(0);
-        headingPID.enableContinuousInput(0, 360);
+        //headingPID.enableContinuousInput(0, 360);
         //arrayAutoStage = 0;
     }
 
+    private void put(String name, double num){
+        SmartDashboard.putNumber(name, num);
+    }
+    /**
+     * @return the robot's X position in relation to its starting position(right positive) 
+     * typically facing away from opposing alliance station
+     */
+    private double fieldX(){
+        return -robotTranslation.getY();
+    }
+    /**
+     * @return the robot's Y position in relation to its starting position(away positive) 
+     * typically facing away form opposing alliance station
+     */
+    private double fieldY(){
+        return robotTranslation.getX();
+    }
+    /**
+     * get the field heading between -180 and 180, negative CCW
+     * @return
+     */
+    private double fieldHeading(){
+        return -yawWraparoundAhead();
+    }
+    /**
+     * get the angle between the bot's current field position and the waypoint coordinates
+     * @param wayX - waypoint X
+     * @param wayY - waypoint Y
+     * @return the angle to the waypoint in the same format as fieldHeading
+     */
+    private double angleToPos(double wayX, double wayY){
+        double returnAngle = 0;
+        double xDiff = wayX-fieldX();
+        double yDiff = wayY-fieldY();
+        double legX = Math.abs(wayX-fieldX());
+        double legY = Math.abs(wayY-fieldY());
+        return Math.toDegrees(Math.atan2(xDiff, yDiff));
+    }
+    /** 
+     * @return error between the bot's current heading and the direction towards a waypoint
+     */
+    private double headingError(double wayX, double wayY){
+        return angleToPos(wayX, wayY)-fieldHeading();
+    }
+    private double headingErrorWraparound(double wayX, double wayY){
+        double error = headingError(wayX, wayY);
+        if(error>180){
+            return error-360;
+        }
+        else if(error<-180){
+            return error+360;
+        }
+        return error;
+    }
     /**
      * "Attack"(drive towards) a point on the field. Units are in meters and its scary.
      * @param targetX - x position of the waypoint in meters
@@ -416,7 +493,7 @@ public class Driver{
      * @return Boolean representing whether the robot is within tolerance of the waypoint or not.
      */
     public boolean attackPoint(double targetX, double targetY, double speed){
-        double xDiff = targetX+robotTranslation.getY();
+        double xDiff = targetX-robotTranslation.getY();
         double yDiff = targetY-robotTranslation.getX();
         double angleTarget = Math.toDegrees(Math.atan2(yDiff, xDiff));
         //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
@@ -427,20 +504,32 @@ public class Driver{
         boolean inTolerance = yInTolerance && xInTolerance;
         if(!inTolerance){
             //drive(RobotNumbers.autoSpeed*speed, rotationOffset*RobotNumbers.autoRotationMultiplier);
+            leaderL.set(0);
+            leaderR.set(0);
         }
         else{
             //drive(0,0);
+            leaderL.set(0);
+            leaderR.set(0);
         }
-        SmartDashboard.putNumber("xDiff", xDiff);
-        SmartDashboard.putNumber("yDiff", yDiff);
-        SmartDashboard.putNumber("angleTarget", angleTarget);
-        SmartDashboard.putNumber("heading", yawWraparound());
-        SmartDashboard.putNumber("abs", yawAbs());
-        SmartDashboard.putNumber("rotationOffset", rotationOffset); //number being fed into drive()
-        SmartDashboard.putNumber("rotationDifference", -(angleTarget-yawWraparound()));
-        SmartDashboard.putBoolean("inTolerance", inTolerance);
-        SmartDashboard.putNumber("left", getMetersLeft());
-        SmartDashboard.putNumber("right", getMetersRight());
+        put("x", fieldX());
+        put("y", fieldY());
+        put("head", fieldHeading());
+        put("angleTo", angleToPos(x.getDouble(0), y.getDouble(0)));
+        put("error", headingError(x.getDouble(0), y.getDouble(0)));
+        put("wrap", headingErrorWraparound(x.getDouble(0), y.getDouble(0)));
+        // SmartDashboard.putNumber("xDiff", xDiff);
+        // SmartDashboard.putNumber("yDiff", yDiff);
+        // SmartDashboard.putNumber("xpos", robotTranslation.getY());
+        // SmartDashboard.putNumber("ypos", -robotTranslation.getX());
+        // SmartDashboard.putNumber("angleTarget", angleTarget);
+        // SmartDashboard.putNumber("heading", yawWraparound());
+        // SmartDashboard.putNumber("abs", yawAbs());
+        // SmartDashboard.putNumber("rotationOffset", -rotationOffset*RobotNumbers.autoRotationMultiplier); //number being fed into drive()
+        // SmartDashboard.putNumber("rotationDifference", -(angleTarget-yawWraparound()));
+        // SmartDashboard.putBoolean("inTolerance", inTolerance);
+        // SmartDashboard.putNumber("left", getMetersLeft());
+        // SmartDashboard.putNumber("right", getMetersRight());
         return inTolerance;
     }
 

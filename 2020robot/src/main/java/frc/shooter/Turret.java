@@ -76,6 +76,7 @@ public class Turret{
         //set the motor encoder to return the position of the turret in degrees using the power of MATH
         encoder.setPositionConversionFactor(((turretSprocketSize/motorSprocketSize)*versaRatio*degreesPerRotation));
         controller = motor.getPIDController();
+        positionControl = new PIDController(0, 0, 0);
         //controller.setReference(0, ControlType.kPosition);
         setMotorPID(0.01, 0, 0);
         setPosPID(0.001, 0, 0);

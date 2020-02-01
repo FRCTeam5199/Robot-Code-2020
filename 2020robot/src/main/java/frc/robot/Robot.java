@@ -84,7 +84,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     //driver.updateAuto1();
-    updateAuto(Autos.testAuto);
+    updateAuto(Autos.auto1);
   }
 
   @Override
@@ -111,6 +111,8 @@ public class Robot extends TimedRobot {
     //turret.resetEncoder();
     //shooter.initLogger();
     //pdp.initLogger();
+    driver.setupAuto();
+    driver.initPoseLogger();
   }
   /**
    * This function is called periodically during test mode.

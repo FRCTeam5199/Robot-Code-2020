@@ -18,8 +18,8 @@ public class RobotNumbers{
     public static final double headingI = 0;
     public static final double headingD = 0;
     public static final double autoSpeedMultiplier = 3;
-    public static final double autoSpeed = 0.0;
-    public static final double autoRotationMultiplier = 0.0;
+    public static final double autoSpeed = 0.2;
+    public static final double autoRotationMultiplier = 0.08;
     /**
      * error tolerance between actual X and Y positions and waypoint X and Y positions
      */
