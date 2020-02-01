@@ -318,8 +318,13 @@ public class Driver{
     }
     public double yawWraparound(){
         double yaw = adjustedYaw();
-        while(yaw>=360){
-            yaw -= 360;
+        while(!(360>=yaw || yaw<0)){
+            if(yaw>=360){
+                yaw -= 360;
+            }
+            else if(yaw<0){
+                yaw += 360;
+            }
         }
         return yaw;
     }
@@ -400,6 +405,7 @@ public class Driver{
         resetPigeon();
         leaderL.getEncoder().setPosition(0);
         leaderR.getEncoder().setPosition(0);
+        headingPID.enableContinuousInput(0, 360);
         //arrayAutoStage = 0;
     }
 
@@ -415,7 +421,7 @@ public class Driver{
         double angleTarget = Math.toDegrees(Math.atan2(yDiff, xDiff));
         //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
         //wait is this just pure pursuit made by an idiot?
-        double rotationOffset = -headingPID.calculate(adjustedYaw(), angleTarget);
+        double rotationOffset = -headingPID.calculate(yawWraparound(), angleTarget);
         boolean xInTolerance = Math.abs(xDiff) < RobotNumbers.autoTolerance;
         boolean yInTolerance = Math.abs(yDiff) < RobotNumbers.autoTolerance;
         boolean inTolerance = yInTolerance && xInTolerance;
@@ -428,10 +434,10 @@ public class Driver{
         SmartDashboard.putNumber("xDiff", xDiff);
         SmartDashboard.putNumber("yDiff", yDiff);
         SmartDashboard.putNumber("angleTarget", angleTarget);
-        SmartDashboard.putNumber("heading", adjustedYaw());
+        SmartDashboard.putNumber("heading", yawWraparound());
         SmartDashboard.putNumber("abs", yawAbs());
         SmartDashboard.putNumber("rotationOffset", rotationOffset); //number being fed into drive()
-        SmartDashboard.putNumber("rotationDifference", -(angleTarget-adjustedYaw()));
+        SmartDashboard.putNumber("rotationDifference", -(angleTarget-yawWraparound()));
         SmartDashboard.putBoolean("inTolerance", inTolerance);
         SmartDashboard.putNumber("left", getMetersLeft());
         SmartDashboard.putNumber("right", getMetersRight());
