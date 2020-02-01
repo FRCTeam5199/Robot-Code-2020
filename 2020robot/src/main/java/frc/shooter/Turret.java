@@ -28,6 +28,7 @@ public class Turret{
     private CANSparkMax motor;
     private CANEncoder encoder;
     private CANPIDController controller;
+    private PIDController positionControl;
     //private PIDController control;
     private double driveOmega;
     private double turretOmega;
@@ -49,12 +50,12 @@ public class Turret{
     public void update(){
         fMultiplier = fMult.getDouble(0);
         targetPosition = pos.getDouble(0);
-        setPID(p.getDouble(0), i.getDouble(0), d.getDouble(0));
+        setMotorPID(p.getDouble(0), i.getDouble(0), d.getDouble(0));
         //turretOmega = -driveOmega*RobotNumbers.turretRotationSpeedMultiplier;
         //double motorOmega = turretOmega*sprocketRatio;    
         
-        setTurretDegrees(targetPosition);
-        setF(1);
+        setTurretTarget(targetPosition);
+        //setF(1);
         SmartDashboard.putNumber("Shooter Omega", turretOmega);
         SmartDashboard.putNumber("Turret Degrees", turretDegrees());
         SmartDashboard.putNumber("Turret Speed", encoder.getVelocity());
@@ -68,23 +69,24 @@ public class Turret{
         //control.setPID(RobotNumbers.turretP, RobotNumbers.turretI, RobotNumbers.turretD);
         //                                                        v   ANGERY   v
         //double motorEncoderCounts = 1; NOTE TO FUTURE PEOPLE: ENCODER SPITS OUT ROTATIONS(not counts)BY DEFAULT
-        double versaRatio = 1;
-        double turretSprocketSize = 1;
-        double motorSprocketSize = 1;
+        double versaRatio = RobotNumbers.turretGearRatio;
+        double turretSprocketSize = RobotNumbers.turretSprocketSize;
+        double motorSprocketSize = RobotNumbers.motorSprocketSize;
         double degreesPerRotation = 360; 
         //set the motor encoder to return the position of the turret in degrees using the power of MATH
         encoder.setPositionConversionFactor(((turretSprocketSize/motorSprocketSize)*versaRatio*degreesPerRotation));
         controller = motor.getPIDController();
-        controller.setReference(0, ControlType.kPosition);
-        setPID(0, 0, 0);
+        //controller.setReference(0, ControlType.kPosition);
+        setMotorPID(0.01, 0, 0);
+        setPosPID(0.001, 0, 0);
     }
 
     public void resetEncoder(){
         encoder.setPosition(0);
     }
 
-    private void setTurretDegrees(double degrees){
-        controller.setReference(degrees, ControlType.kPosition);
+    private void setTurretTarget(double degrees){
+        rotateTurret(positionControl.calculate(turretDegrees(), degrees)+driveOmega);
     }
 
     private double turretDegrees(){
@@ -95,13 +97,29 @@ public class Turret{
         driveOmega = omega;
     }
 
-    private void setPID(double P, double I, double D){
+    private void setMotorPID(double P, double I, double D){
         controller.setP(P);
         controller.setI(I);
         controller.setD(D);
     }
+    private void setPosPID(double P, double I, double D){
+        positionControl.setP(P);
+        positionControl.setI(I);
+        positionControl.setD(D);
+    }
 
     private void setF(double F){
         controller.setFF(F*fMultiplier);
+    }
+
+    /**
+     * Rotate the turret at a certain rad/sec
+     * @param speed - rad/sec to rotate the turret at
+     */
+    private void rotateTurret(double speed){
+        //1 Radians Per Second to Revolutions Per Minute = 9.5493 RPM
+        double turretRPM = speed*9.5493;
+        double motorRPM = turretRPM * (RobotNumbers.turretSprocketSize / RobotNumbers.motorSprocketSize) * RobotNumbers.turretGearRatio;
+        controller.setReference(motorRPM, ControlType.kVelocity);
     }
 }

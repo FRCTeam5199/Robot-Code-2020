@@ -36,6 +36,9 @@ public class RobotNumbers{
     public static final double turretP = 0.00000000001;
     public static final double turretI = 0;
     public static final double turretD = 0;
+    public static final double turretSprocketSize = 2;
+    public static final double motorSprocketSize = 1;
+    public static final double turretGearRatio = 7;
 
     public static final double triggerSensitivity = 0.25;
 
