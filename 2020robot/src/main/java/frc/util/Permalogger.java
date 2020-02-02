@@ -156,7 +156,7 @@ public class Permalogger {
      * @return 0 on write success, -1 on failure.
      */
     public int writeData(double... data_elements) {
-        String line_to_write = "";
+        String line_to_write = getDateTimeString()+", ";
 
         if (log_open == false) {
             if(!errorSent){
