@@ -40,8 +40,15 @@ public class Shooter{
     private NetworkTableEntry shooterToggle = tab.add("Shooter Toggle", false).getEntry();
     private NetworkTableEntry rampRate = tab.add("Ramp Rate", 40).getEntry();
 
-    public String[] data = {"match time", "init time", "speed", "target speed", "motor temperature", "motor current", "powered", "P", "I", "D"};
-    public String[] units = {"seconds", "seconds", "rpm", "rpm", "C", "A", "T/F", "num", "num", "num"};
+    public String[] data = {
+        "match time", "init time", 
+        "speed", "target speed", 
+        "motor temperature", "motor current", 
+        "powered", 
+        "P", "I", "D", 
+        "rP", "rI", "rD"
+    };
+    public String[] units = {"seconds", "seconds", "rpm", "rpm", "C", "A", "T/F", "num", "num", "num", "num", "num", "num"};
 
     private double targetRPM;
     private double speed;
@@ -85,9 +92,6 @@ public class Shooter{
             System.out.println("Ramp Rate Set to "+rate+", now "+leader.getOpenLoopRampRate());
         }
 
-        double Pold = speedo.getP();
-        double Iold = speedo.getI();
-        double Dold = speedo.getD();
         P = shooterP.getDouble(0);
         I = shooterI.getDouble(0);
         D = shooterD.getDouble(0);
@@ -256,7 +260,16 @@ public class Shooter{
     private void writeData(){
         double powered;
         if(enabled){powered = 1;}else{powered = 0;}
-        double[] data = {Timer.getMatchTime(), timer.get(), leader.getEncoder().getVelocity(), speed, leader.getMotorTemperature(), leader.getOutputCurrent(), powered, P, I, D};
+        double[] data = {
+            Timer.getMatchTime(), 
+            timer.get(), 
+            leader.getEncoder().getVelocity(), 
+            speed, leader.getMotorTemperature(), 
+            leader.getOutputCurrent(), 
+            powered, 
+            P, I, D, 
+            recoveryP, recoveryI, recoveryD
+        };
         logger.writeData(data);
     }
 }
