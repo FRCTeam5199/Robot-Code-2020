@@ -172,8 +172,8 @@ public class Shooter{
         shooterI.getDouble(0);
         shooterD.getDouble(0);
 
-        leader.setSmartCurrentLimit(40);
-        follower.setSmartCurrentLimit(40);
+        leader.setSmartCurrentLimit(80);
+        follower.setSmartCurrentLimit(80);
         leader.setIdleMode(IdleMode.kCoast);
         follower.setIdleMode(IdleMode.kCoast);
 
