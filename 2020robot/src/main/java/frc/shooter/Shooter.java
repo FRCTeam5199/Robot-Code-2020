@@ -20,6 +20,7 @@ import frc.robot.RobotMap;
 import frc.robot.RobotNumbers;
 import frc.robot.RobotToggles;
 import frc.util.Logger;
+import frc.util.Permalogger;
 
 public class Shooter{
     private final CANSparkMax leader, follower;
@@ -30,6 +31,7 @@ public class Shooter{
 
     private Timer timer = new Timer();
     private Logger logger = new Logger("shooter");
+    private Permalogger permalogger = new Permalogger("shooter");
 
     private double pulleyRatio = RobotNumbers.motorPulleySize/RobotNumbers.driverPulleySize;
 
@@ -43,12 +45,14 @@ public class Shooter{
 
     private double targetRPM;
     private double speed;
-    private int ballsShot;
+    private int ballsShot = 0;
     private boolean poweredState;
+    private boolean atSpeed = false;
 
     private NetworkTableEntry shooterP = tab.add("P", 0).getEntry();
     private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
     private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
+
 
     private double P, I, D;
 
@@ -70,8 +74,6 @@ public class Shooter{
         speed = shooterSpeed.getDouble(0);
         double rate = rampRate.getDouble(40);
         boolean toggle = shooterToggle.getBoolean(false);
-        
-        boolean atSpeed;
 
         if(leader.getOpenLoopRampRate()!=rate){
             leader.setOpenLoopRampRate(rate);
@@ -104,7 +106,7 @@ public class Shooter{
             //poweredState = false;
             if(RobotToggles.shooterPID){
                 //do nothing because the voltage being set to 0 *should* coast it?
-                leader.set(0); //actually set the reference to 0 so our I value doesn't go sicko mode
+                leader.set(0);
             }
             else{
                 leader.set(0);
@@ -118,8 +120,17 @@ public class Shooter{
         SmartDashboard.putNumber("Drive Wheel IPS", actualRPM*pulleyRatio*RobotNumbers.driverWheelDiameter*Math.PI);
         SmartDashboard.putNumber("Motor Current", leader.getOutputCurrent());
         SmartDashboard.putNumber("Motor Temp", leader.getMotorTemperature());
-        SmartDashboard.putNumber("I value", speedo.getIAccum());
+        SmartDashboard.putNumber("I accumulator", speedo.getIAccum());
 
+        if(actualRPM >= speed-50){
+            atSpeed = true;
+        }
+        if(atSpeed && actualRPM < speed-70){
+            ballsShot++;
+        }
+        if(actualRPM < speed-70){
+            atSpeed = false;
+        }
         // if(poweredState == true){
         //     leader.setVoltage(12);
         //     follower.setVoltage(12);
@@ -131,6 +142,8 @@ public class Shooter{
         
         if(RobotToggles.logData){writeData();}
         //System.out.println(leader.getEncoder().getVelocity());
+        SmartDashboard.putBoolean("atSpeed", atSpeed);
+        SmartDashboard.putNumber("ballsShot", ballsShot);
     }
 
     /**
@@ -200,11 +213,14 @@ public class Shooter{
         System.out.println("attempting to initialize logger - Shooter");
         logger.init(data, units);
         timer.start();
+        permalogger.init();
     }
     /**
      * Close the Shooter logger, call during disabledInit().
      */
     public void closeLogger(){
+        permalogger.writeData(ballsShot);
+        permalogger.close();
         logger.close();
     }
     /**

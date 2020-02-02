@@ -109,8 +109,8 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() { 
     //turret.resetEncoder();
-    //shooter.initLogger();
-    //pdp.initLogger();
+    shooter.initLogger();
+    pdp.initLogger();
     driver.setupAuto();
     driver.initPoseLogger();
   }
@@ -121,8 +121,8 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     driver.updateTest();
     //turret.update();
-    //shooter.update();
-    //pdp.update();
+    shooter.update();
+    pdp.update();
   }
 
   @Override
