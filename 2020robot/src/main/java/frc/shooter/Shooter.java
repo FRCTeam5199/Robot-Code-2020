@@ -48,13 +48,18 @@ public class Shooter{
     private int ballsShot = 0;
     private boolean poweredState;
     private boolean atSpeed = false;
+    private boolean spunUp = false;
+    private boolean recoveryPID = false;
 
     private NetworkTableEntry shooterP = tab.add("P", 0).getEntry();
     private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
     private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
+    private NetworkTableEntry recP = tab.add("recP", 0).getEntry();
+    private NetworkTableEntry recI = tab.add("recI", 0).getEntry();
+    private NetworkTableEntry recD = tab.add("recD", 0).getEntry();
 
 
-    private double P, I, D;
+    private double P, I, D, recoveryP, recoveryI, recoveryD;
 
     public Shooter(){
         leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
@@ -86,10 +91,14 @@ public class Shooter{
         P = shooterP.getDouble(0);
         I = shooterI.getDouble(0);
         D = shooterD.getDouble(0);
-        if(P!=Pold || I!=Iold || D!=Dold){
-            setPID(P,I,D);
-            System.out.println("PID reset");
-        }
+        recoveryP = recP.getDouble(0);
+        recoveryI = recI.getDouble(0);
+        recoveryD = recD.getDouble(0);
+
+        // if(P!=Pold || I!=Iold || D!=Dold){
+        //     setPID(P,I,D);
+        //     System.out.println("PID reset");
+        // }
         //if(enabled){
             //leader.set(0.05);
         toggle(toggle);
@@ -106,6 +115,7 @@ public class Shooter{
             //poweredState = false;
             if(RobotToggles.shooterPID){
                 //do nothing because the voltage being set to 0 *should* coast it?
+                //to past me: it does
                 leader.set(0);
             }
             else{
@@ -124,6 +134,7 @@ public class Shooter{
 
         if(actualRPM >= speed-50){
             atSpeed = true;
+            spunUp = true;
         }
         if(atSpeed && actualRPM < speed-70){
             ballsShot++;
@@ -131,6 +142,22 @@ public class Shooter{
         if(actualRPM < speed-70){
             atSpeed = false;
         }
+
+        if(spunUp && actualRPM<speed-80){
+            recoveryPID = true;
+        }
+        if(!enabled){
+            recoveryPID = false;
+            spunUp = false;
+        }
+
+        if(recoveryPID){
+            setPID(recoveryP, recoveryI, recoveryD);
+        }
+        else{
+            setPID(P,I,D);
+        }
+        
         // if(poweredState == true){
         //     leader.setVoltage(12);
         //     follower.setVoltage(12);
