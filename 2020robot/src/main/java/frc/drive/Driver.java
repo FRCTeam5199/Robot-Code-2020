@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 
 import frc.util.Logger;
+import frc.util.Permalogger;
 
 import frc.vision.BallChameleon;
 
@@ -44,6 +45,7 @@ public class Driver{
     private PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
     private Logger logger = new Logger("drive");
     private Logger posLogger = new Logger("positions");
+    private Permalogger odo = new Permalogger("distance");
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.2));
     DifferentialDriveOdometry odometer;
@@ -78,6 +80,8 @@ public class Driver{
     public Pose2d robotPose;
     public Translation2d robotTranslation;
     public Rotation2d robotRotation;
+
+    private double feetDriven = 0;
 
     public Driver(){
         controller = new XBoxController(0);
@@ -118,6 +122,7 @@ public class Driver{
         robotRotation = robotPose.getRotation();
         double[] dataElements = {robotTranslation.getX(), robotTranslation.getY(), Logger.boolToDouble(controller.getButtonDown(5))};
         logger.writeData(dataElements);
+        feetDriven = (getFeetLeft()+getFeetRight())/2;
     }
 
     /**
@@ -411,9 +416,7 @@ public class Driver{
     public void setupAuto(){
         headingPID = new PIDController(RobotNumbers.headingP, RobotNumbers.headingI, RobotNumbers.headingD);
         odometer = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
-        String[] dataFields = {"X", "Y", "Flag"};
-        String[] units = {"Meters", "Meters", ""};
-        logger.init(dataFields, units);
+        initLogger();
         resetPigeon();
         leaderL.getEncoder().setPosition(0);
         leaderR.getEncoder().setPosition(0);
@@ -497,13 +500,13 @@ public class Driver{
             // leaderL.set(0);
             // leaderR.set(0);
         }
-        put("x", fieldX());
-        put("y", fieldY());
-        put("head", fieldHeading());
-        put("angleTo", angleToPos(x.getDouble(0), y.getDouble(0)));
-        // put("error", headingError(x.getDouble(0), y.getDouble(0)));
-        put("wrap", headingErrorWraparound(x.getDouble(0), y.getDouble(0)));
-        put("rotationOffset", rotationOffset);
+        // put("x", fieldX());
+        // put("y", fieldY());
+        // put("head", fieldHeading());
+        // put("angleTo", angleToPos(x.getDouble(0), y.getDouble(0)));
+        // // put("error", headingError(x.getDouble(0), y.getDouble(0)));
+        // put("wrap", headingErrorWraparound(x.getDouble(0), y.getDouble(0)));
+        // put("rotationOffset", rotationOffset);
         // SmartDashboard.putNumber("xDiff", xDiff);
         // SmartDashboard.putNumber("yDiff", yDiff);
         // SmartDashboard.putNumber("xpos", robotTranslation.getY());
@@ -715,11 +718,21 @@ public class Driver{
         String[] units = {"Meters", "Meters", ""};
         posLogger.init(dataFields, units);
     }
+
+    public void initLogger(){
+        String[] dataFields = {"X", "Y", "Flag"};
+        String[] units = {"Meters", "Meters", ""};
+        logger.init(dataFields, units);
+        odo.init();
+    }
     
     /**
      * close all loggers
      */
     public void closeLogger(){
+        double[] odoData = {feetDriven};
+        odo.writeData(odoData);
+        odo.close();
         logger.close();
         posLogger.close();
     }

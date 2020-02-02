@@ -16,6 +16,7 @@ import java.io.BufferedWriter;
  *
  * This software is released under the MIT Licence - see the license.txt
  *  file in the root of this repo.
+ * Copyright 2017 FRC Team 1736 Robot Casserole
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
@@ -58,10 +59,11 @@ import java.io.BufferedWriter;
  * with excel or your favourite software.</li>
  * </ol>
  * 
+ * janked by conor to hopefully write to a singular file
  * 
  */
 
-public class Logger {
+public class Permalogger {
 
     long log_write_index;
     String log_name = null;
@@ -71,13 +73,13 @@ public class Logger {
     boolean errorSent = false;
     private String fileAppend = "";
 
-    public Logger(String dir){
-        output_dir = "/U/data_captures/"+dir+"/";
+    public Permalogger(String dir){
+        output_dir = "/U/data_captures/permaloggers/";
         fileAppend = dir;
     }
 
     public void setOutputDir(String dir){
-        output_dir = "/U/data_captures/"+dir+"/";
+        output_dir = "/U/data_captures/permaloggers/";
     }
     /**
      * Small utility method, returns 0 or 1 based on a boolean
@@ -93,12 +95,9 @@ public class Logger {
     /**
      * Determines a unique file name, and opens a file in the data captures directory and writes the
      * initial lines to it.
-     * 
-     * @param data_fields A set of strings for signal names to write into the file
-     * @param units_fields A set of strings for signal units to write into the file
      * @return 0 on successful log open, -1 on failure
      */
-    public int init(String[] data_fields, String[] units_fields) {
+    public int init() {
 
         if (log_open) {
             System.out.println("Warning - log is already open!");
@@ -112,26 +111,26 @@ public class Logger {
             log_write_index = 0;
 
             // Determine a unique file name
-            log_name = output_dir + fileAppend + "_log_" + getDateTimeString() + ".csv";
+            log_name = output_dir + fileAppend + "_permalog.csv";
 
             // Open File
             FileWriter fstream = new FileWriter(log_name, true);
             log_file = new BufferedWriter(fstream);
 
-            // Write user-defined header line
-            for (String header_txt : data_fields) {
-                log_file.write(header_txt + ", ");
-            }
-            // End of line
-            log_file.write("\n");
+            // // Write user-defined header line
+            // for (String header_txt : data_fields) {
+            //     log_file.write(header_txt + ", ");
+            // }
+            // // End of line
+            // log_file.write("\n");
 
 
-            // Write user-defined units line
-            for (String header_txt : units_fields) {
-                log_file.write(header_txt + ", ");
-            }
-            // End of line
-            log_file.write("\n");
+            // // Write user-defined units line
+            // for (String header_txt : units_fields) {
+            //     log_file.write(header_txt + ", ");
+            // }
+            // // End of line
+            // log_file.write("\n");
 
         }
         // Catch ALL the errors!!!
