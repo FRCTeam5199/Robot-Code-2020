@@ -31,17 +31,6 @@ import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 
-import java.io.IOException;
-
-import edu.wpi.first.wpilibj.AnalogGyro;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Notifier;
-import edu.wpi.first.wpilibj.SpeedController;
-import edu.wpi.first.wpilibj.TimedRobot;
-import jaci.pathfinder.Pathfinder;
-import jaci.pathfinder.PathfinderFRC;
-import jaci.pathfinder.Trajectory;
-import jaci.pathfinder.followers.EncoderFollower;
 import frc.util.Logger;
 
 import frc.vision.BallChameleon;
@@ -69,14 +58,14 @@ public class Driver{
     private CANPIDController leftPID;
     private CANPIDController rightPID;
 
-    private double targetHeading;
+    //private double targetHeading;
 
     public double[] ypr = new double[3];
     public double[] startypr = new double[3];
 
     public double currentOmega;
 
-    private boolean chaseBall;
+    //private boolean chaseBall;
     private boolean pointBall;
 
     private boolean invert;
@@ -148,13 +137,13 @@ public class Driver{
             drive = controller.getStickLY();
         }
         pointBall = controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
-        chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
+        //chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
 
         //!!!!!
         //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
         if(pointBall){
             double angleOffset = -chameleon.getBallAngle();
-            double driveOffset = chameleon.getBallSize();
+            //double driveOffset = chameleon.getBallSize();
             //System.out.println("attempting to aim");
             if(Math.abs(angleOffset)>RobotNumbers.llTolerance){
                 //System.out.println("attempting to drive");
@@ -190,13 +179,13 @@ public class Driver{
             drive = controller.getStickLY();
         }
         pointBall = controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
-        chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
+        //chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
 
         //!!!!!
         //if statement for ball tracking should add an omega offset proportional to the ball's left/rightness in the limelight
         if(pointBall){
             double angleOffset = -chameleon.getBallAngle();
-            double driveOffset = chameleon.getBallSize();
+            //double driveOffset = chameleon.getBallSize();
             //System.out.println("attempting to aim");
             if(Math.abs(angleOffset)>RobotNumbers.llTolerance){
                 //System.out.println("attempting to drive");
@@ -463,11 +452,8 @@ public class Driver{
      * @return the angle to the waypoint in the same format as fieldHeading
      */
     private double angleToPos(double wayX, double wayY){
-        double returnAngle = 0;
         double xDiff = wayX-fieldX();
         double yDiff = wayY-fieldY();
-        double legX = Math.abs(wayX-fieldX());
-        double legY = Math.abs(wayY-fieldY());
         return Math.toDegrees(Math.atan2(xDiff, yDiff));
     }
     /** 
@@ -495,7 +481,6 @@ public class Driver{
     public boolean attackPoint(double targetX, double targetY, double speed){
         double xDiff = targetX-fieldX();
         double yDiff = targetY-fieldY();
-        double angleTarget = Math.toDegrees(Math.atan2(yDiff, xDiff));
         //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
         //wait is this just pure pursuit made by an idiot?
         double rotationOffset = headingPID.calculate(headingErrorWraparound(targetX, targetY), 0);
