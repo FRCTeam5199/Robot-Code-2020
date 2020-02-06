@@ -119,7 +119,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
-    driver.updateTest();
+    //driver.updateTest();
     //turret.update();
     shooter.update();
     pdp.update();

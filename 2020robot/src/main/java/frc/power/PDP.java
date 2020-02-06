@@ -18,7 +18,7 @@ public class PDP{
     public String[] units = {"seconds", "seconds", "v", "state"};
 
     /**
-     * Initialize the logger for the PDP, call during autonomousnit.
+     * Initialize the logger for the PDP, call during autonomousInit.
      */
     public void initLogger(){
         System.out.println("attempting to initialize logger - PDP");

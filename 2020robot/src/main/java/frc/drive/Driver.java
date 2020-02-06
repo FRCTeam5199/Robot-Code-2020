@@ -436,7 +436,7 @@ public class Driver{
     }
     /**
      * @return the robot's Y position in relation to its starting position(away positive) 
-     * typically facing away form opposing alliance station
+     * typically facing away from opposing alliance station
      */
     private double fieldY(){
         return robotTranslation.getX();

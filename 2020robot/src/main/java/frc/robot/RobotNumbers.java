@@ -6,9 +6,9 @@ public class RobotNumbers{
     //public static final double [NAME] = [VALUE];
     //public static final double maxHeight = 40; <-- EXAMPLE
 
-    public static final double shooterSpinUpP = 0;
-    public static final double shooterSpinUpI = 0;
-    public static final double shooterSpinUpD = 0;
+    public static final double shooterSpinUpP = 0.0003;
+    public static final double shooterSpinUpI = 0.00000035;
+    public static final double shooterSpinUpD = 0.02;
     public static final double shooterRecoveryP = 0;
     public static final double shooterRecoveryI = 0;
     public static final double shooterRecoveryD = 0;

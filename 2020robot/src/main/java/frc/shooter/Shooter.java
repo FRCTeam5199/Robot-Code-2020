@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.networktables.*;
 import edu.wpi.first.networktables.NetworkTableEntry;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
+import edu.wpi.first.wpilibj.util.Units;
 import frc.controllers.XBoxController;
 import frc.robot.RobotMap;
 import frc.robot.RobotNumbers;
@@ -67,6 +67,7 @@ public class Shooter{
 
 
     private double P, I, D, recoveryP, recoveryI, recoveryD;
+    private double actualRPM;
 
     public Shooter(){
         leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
@@ -83,6 +84,8 @@ public class Shooter{
      * Update the Shooter object.
      */
     public void update(){
+        actualRPM = leader.getEncoder().getVelocity();
+        checkState();
         speed = shooterSpeed.getDouble(0);
         double rate = rampRate.getDouble(40);
         boolean toggle = shooterToggle.getBoolean(false);
@@ -92,12 +95,17 @@ public class Shooter{
             System.out.println("Ramp Rate Set to "+rate+", now "+leader.getOpenLoopRampRate());
         }
 
-        P = shooterP.getDouble(0);
-        I = shooterI.getDouble(0);
-        D = shooterD.getDouble(0);
-        recoveryP = recP.getDouble(0);
-        recoveryI = recI.getDouble(0);
-        recoveryD = recD.getDouble(0);
+        //3.00E-04	3.50E-07	0.02
+        P = RobotNumbers.shooterSpinUpP; //shooterP.getDouble(0);
+        I = RobotNumbers.shooterSpinUpI; //shooterI.getDouble(0);
+        D = RobotNumbers.shooterSpinUpD; //shooterD.getDouble(0);
+
+        //3.00E-04	1.00E-07	0.07 (tentative values, not perfect yet)
+        recoveryP = recP.getDouble(3e-4);
+        recoveryI = recI.getDouble(1e-7);
+        recoveryD = recD.getDouble(0.07);
+
+        //setPID(P,I,D);
 
         // if(P!=Pold || I!=Iold || D!=Dold){
         //     setPID(P,I,D);
@@ -127,7 +135,6 @@ public class Shooter{
             }
         }
 
-        double actualRPM = leader.getEncoder().getVelocity();
         SmartDashboard.putNumber("RPM", actualRPM);
         SmartDashboard.putNumber("Target RPM", speed);
         SmartDashboard.putNumber("Drive Wheel RPM", actualRPM*pulleyRatio);
@@ -135,32 +142,9 @@ public class Shooter{
         SmartDashboard.putNumber("Motor Current", leader.getOutputCurrent());
         SmartDashboard.putNumber("Motor Temp", leader.getMotorTemperature());
         SmartDashboard.putNumber("I accumulator", speedo.getIAccum());
+        SmartDashboard.putBoolean("RecMode", recoveryPID);
 
-        if(actualRPM >= speed-50){
-            atSpeed = true;
-            spunUp = true;
-        }
-        if(atSpeed && actualRPM < speed-70){
-            ballsShot++;
-        }
-        if(actualRPM < speed-70){
-            atSpeed = false;
-        }
-
-        if(spunUp && actualRPM<speed-80){
-            recoveryPID = true;
-        }
-        if(!enabled){
-            recoveryPID = false;
-            spunUp = false;
-        }
-
-        if(recoveryPID){
-            setPID(recoveryP, recoveryI, recoveryD);
-        }
-        else{
-            setPID(P,I,D);
-        }
+        
         
         // if(poweredState == true){
         //     leader.setVoltage(12);
@@ -175,6 +159,48 @@ public class Shooter{
         //System.out.println(leader.getEncoder().getVelocity());
         SmartDashboard.putBoolean("atSpeed", atSpeed);
         SmartDashboard.putNumber("ballsShot", ballsShot);
+    }
+
+    /**
+     * Get motor speed based 
+     * @param distance
+     * @return
+     */
+    private double getSpeedBasedOnDistance(double distance){
+        //speed of motor = wheel speed/1.5
+        //wheel speed = ips/4pi
+        //therefore speed of motor = (ips/4pi)/1.5
+        //velocity(m/s) = sqrt((49)/(sin(theta))^2)
+        
+        return 0;
+    }
+
+    private void checkState(){
+        if(actualRPM >= speed-50){
+            atSpeed = true;
+            spunUp = true;
+        }
+        if(atSpeed && actualRPM < speed-70){
+            ballsShot++;
+        }
+        if(actualRPM < speed-70){
+            atSpeed = false;
+        }
+
+        if(spunUp && actualRPM<speed-80){
+            recoveryPID = true;
+        }
+        if(actualRPM<10){
+            recoveryPID = false;
+            spunUp = false;
+        }
+
+        if(recoveryPID){
+            setPID(recoveryP, recoveryI, recoveryD);
+        }
+        else{
+            setPID(P,I,D);
+        }
     }
 
     /**

@@ -9,6 +9,7 @@ import frc.controllers.XBoxController;
 import java.io.IOException;
 
 import com.revrobotics.CANSparkMax;
+import com.ctre.phoenix.sensors.PigeonIMU;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax.FaultID;
@@ -29,9 +30,14 @@ public class Turret{
     private CANEncoder encoder;
     private CANPIDController controller;
     private PIDController positionControl;
+    private PigeonIMU pigeon;
     //private PIDController control;
     private double driveOmega;
     private double turretOmega;
+    private double robotYaw;
+    private double startYaw;
+    private double[] ypr;
+    private double[] startypr;
 
     private double fMultiplier;
     private double targetPosition;
@@ -45,6 +51,7 @@ public class Turret{
     public Turret(){
         motor = new CANSparkMax(5, MotorType.kBrushless);
         encoder = motor.getEncoder();
+        pigeon = new PigeonIMU(RobotMap.pigeon);
     }
 
     public void update(){
@@ -82,12 +89,13 @@ public class Turret{
         setPosPID(0.001, 0, 0);
     }
 
-    public void resetEncoder(){
+    public void resetEncoderAndGyro(){
         encoder.setPosition(0);
+        resetPigeon();
     }
 
     private void setTurretTarget(double degrees){
-        rotateTurret(positionControl.calculate(turretDegrees(), degrees)+driveOmega);
+        rotateTurret(positionControl.calculate(turretDegrees(), degrees)-driveOmega);
     }
 
     private double turretDegrees(){
@@ -109,9 +117,9 @@ public class Turret{
         positionControl.setD(D);
     }
 
-    private void setF(double F){
-        controller.setFF(F*fMultiplier);
-    }
+    // private void setF(double F){
+    //     controller.setFF(F*fMultiplier);
+    // }
 
     /**
      * Rotate the turret at a certain rad/sec
@@ -122,5 +130,30 @@ public class Turret{
         double turretRPM = speed*9.5493;
         double motorRPM = turretRPM * (RobotNumbers.turretSprocketSize / RobotNumbers.motorSprocketSize) * RobotNumbers.turretGearRatio;
         controller.setReference(motorRPM, ControlType.kVelocity);
+    }
+
+    private void pointNorth(){
+        //set position of turret to whatever angle is "north"(generally towards goal)
+    }
+
+
+    //pigeon ------------------------------------------------------------------------------------------------------------------------
+    public void updatePigeon(){
+        pigeon.getYawPitchRoll(ypr);
+    }
+    public void resetPigeon(){
+        updatePigeon();
+        startypr = ypr;
+        startYaw = yawAbs();
+    }
+    //absolute ypr -----------------------------------------------------------------------------------------------------------------
+    public double yawAbs(){ //return absolute yaw of pigeon
+        updatePigeon();
+        return ypr[0];
+    }
+    //relative ypr ----------------------------------------------------------------------------------------------------------------
+    public double yawRel(){ //return relative(to start) yaw of pigeon
+        updatePigeon();
+        return (ypr[0]-startYaw);
     }
 }
