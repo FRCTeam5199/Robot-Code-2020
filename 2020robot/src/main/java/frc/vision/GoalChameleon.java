@@ -7,6 +7,7 @@ public class GoalChameleon{
     public NetworkTableEntry size;
     public NetworkTableEntry isValid;
     public NetworkTableEntry pitch;
+    public NetworkTableEntry pose;
 
     public void init(){
         NetworkTableInstance table = NetworkTableInstance.getDefault();
@@ -15,6 +16,7 @@ public class GoalChameleon{
         size = cameraTable.getEntry("targetFittedWidth");
         isValid = cameraTable.getEntry("isValid");
         pitch = cameraTable.getEntry("targetPitch");
+        pose = cameraTable.getEntry("targetPose");
     }
 
     public void update(){
@@ -23,7 +25,7 @@ public class GoalChameleon{
 
     /**
      * Get angle between crosshair and goal left/right.
-     * @return angle between crosshair and ball, left negative, 29.8 degrees in both directions.
+     * @return angle between crosshair and goal, left negative, 29.8 degrees in both directions.
      */
     public double getGoalAngle(){ 
         double angle = yaw.getDouble(0);
@@ -35,7 +37,7 @@ public class GoalChameleon{
 
     /**
      * Get angle between crosshair and goal up/down.
-     * @return angle between crosshair and ball, down negative, 22 degrees in both directions.
+     * @return angle between crosshair and goal, down negative, 22 degrees in both directions.
      */
     public double getGoalPitch(){ 
         double angle = pitch.getDouble(0);
@@ -47,7 +49,7 @@ public class GoalChameleon{
 
     /**
      * Get the size of the goal onscreen.
-     * @return size of the ball in % of the screen, 0-100.
+     * @return size of the goal in % of the screen, 0-100.
      */
     public double getGoalSize(){
         double goalSize = size.getDouble(0);
@@ -55,5 +57,16 @@ public class GoalChameleon{
             return goalSize;
         }
         return 0;
+    }
+
+    /**
+     * Get the distance between the robot and the goal using SolvePNP in chameleon
+     * @return distance to goal in meters
+     */
+    public double getGoalDistance(){
+        double[] defaultPos = {0,0,0};
+        double[] goalPos = pose.getDoubleArray(defaultPos);
+        double dist = Math.sqrt(Math.pow(goalPos[0], 2)+Math.pow(goalPos[1], 2));
+        return dist; //return distance
     }
 }

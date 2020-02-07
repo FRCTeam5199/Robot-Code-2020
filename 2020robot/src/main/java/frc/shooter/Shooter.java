@@ -21,6 +21,7 @@ import frc.robot.RobotNumbers;
 import frc.robot.RobotToggles;
 import frc.util.Logger;
 import frc.util.Permalogger;
+import frc.vision.GoalChameleon;
 
 public class Shooter{
     private final CANSparkMax leader, follower;
@@ -46,9 +47,10 @@ public class Shooter{
         "motor temperature", "motor current", 
         "powered", 
         "P", "I", "D", 
-        "rP", "rI", "rD"
+        "rP", "rI", "rD",
+        "distance"
     };
-    public String[] units = {"seconds", "seconds", "rpm", "rpm", "C", "A", "T/F", "num", "num", "num", "num", "num", "num"};
+    public String[] units = {"seconds", "seconds", "rpm", "rpm", "C", "A", "T/F", "num", "num", "num", "num", "num", "num", "meters"};
 
     private double targetRPM;
     private double speed;
@@ -69,6 +71,8 @@ public class Shooter{
     private double P, I, D, recoveryP, recoveryI, recoveryD;
     private double actualRPM;
 
+    private GoalChameleon chameleon;
+
     public Shooter(){
         leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
         follower = new CANSparkMax(RobotMap.shooterFollower, MotorType.kBrushless);
@@ -78,6 +82,7 @@ public class Shooter{
         leader.setInverted(true);
         follower.follow(leader, true);
         poweredState = false;
+        chameleon = new GoalChameleon();
     }
 
     /**
@@ -294,7 +299,8 @@ public class Shooter{
             leader.getOutputCurrent(), 
             powered, 
             P, I, D, 
-            recoveryP, recoveryI, recoveryD
+            recoveryP, recoveryI, recoveryD,
+            chameleon.getGoalDistance()
         };
         logger.writeData(data);
     }
