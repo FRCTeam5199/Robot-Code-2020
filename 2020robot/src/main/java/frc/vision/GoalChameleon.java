@@ -24,6 +24,14 @@ public class GoalChameleon{
     }
 
     /**
+     * Check for a valid target in the camera's view.
+     * @return whether or not there is a valid target in view.
+     */
+    public boolean validTarget(){
+        return isValid.getBoolean(false);
+    }
+
+    /**
      * Get angle between crosshair and goal left/right.
      * @return angle between crosshair and goal, left negative, 29.8 degrees in both directions.
      */

@@ -3,7 +3,7 @@ package frc.shooter;
 import frc.robot.Robot;
 import frc.robot.RobotMap;
 import frc.robot.RobotNumbers;
-
+import frc.vision.GoalChameleon;
 import frc.controllers.XBoxController;
 
 import java.io.IOException;
@@ -48,10 +48,13 @@ public class Turret{
     private NetworkTableEntry i = tab.add("I", 0).getEntry();
     private NetworkTableEntry d = tab.add("D", 0).getEntry();
 
+    private GoalChameleon chameleon;
+
     public Turret(){
         motor = new CANSparkMax(5, MotorType.kBrushless);
         encoder = motor.getEncoder();
         pigeon = new PigeonIMU(RobotMap.pigeon);
+        chameleon = new GoalChameleon();
     }
 
     public void update(){
@@ -61,7 +64,37 @@ public class Turret{
         //turretOmega = -driveOmega*RobotNumbers.turretRotationSpeedMultiplier;
         //double motorOmega = turretOmega*sprocketRatio;    
         
-        setTurretTarget(targetPosition);
+        //!!!!! THE TURRET ZERO IS THE MECHANICAL STOP CLOSEST TO THE GOAL
+
+        /*things to do:
+        check if there is a valid target, if not, face north based on gyro
+        if there is a valid target, point at it
+        if 270>position>0 then offset WHATEVER speed it is turning at by -driveOmega to counterrotate
+        */
+        double omegaSetpoint;
+        if(270>turretDegrees() && turretDegrees()>0){
+            omegaSetpoint = -driveOmega;
+        }
+        else{
+            omegaSetpoint = 0;
+        }
+
+        if(!chameleon.validTarget()){//no target
+            //face north
+            omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(35+yawWrap()));
+        }
+        else{//target good
+            omegaSetpoint += positionControl.calculate(chameleon.getGoalAngle(), 0);
+        }
+
+        boolean safe = turretDegrees()<270 && turretDegrees()>0;
+        if(safe){
+            rotateTurret(omegaSetpoint);
+        }
+        else{
+            motor.set(0); //this shouldn't happen but if it does, stop the motor
+        }
+
         //setF(1);
         SmartDashboard.putNumber("Shooter Omega", turretOmega);
         SmartDashboard.putNumber("Turret Degrees", turretDegrees());
@@ -71,7 +104,6 @@ public class Turret{
 
     public void init(){
         fMultiplier = 0;
-        encoder.setPosition(0);
         //control = new PIDController(0, 0, 0);
         //control.setPID(RobotNumbers.turretP, RobotNumbers.turretI, RobotNumbers.turretD);
         //                                                        v   ANGERY   v
@@ -84,9 +116,11 @@ public class Turret{
         encoder.setPositionConversionFactor(((turretSprocketSize/motorSprocketSize)*versaRatio*degreesPerRotation));
         controller = motor.getPIDController();
         positionControl = new PIDController(0, 0, 0);
+        encoder.setPosition(270);
         //controller.setReference(0, ControlType.kPosition);
         setMotorPID(0.01, 0, 0);
         setPosPID(0.001, 0, 0);
+        motor.setIdleMode(IdleMode.kBrake);
     }
 
     public void resetEncoderAndGyro(){
@@ -94,8 +128,12 @@ public class Turret{
         resetPigeon();
     }
 
+    /**
+     * don't use
+     * @param degrees
+     */
     private void setTurretTarget(double degrees){
-        rotateTurret(positionControl.calculate(turretDegrees(), degrees)-driveOmega);
+        rotateTurret(positionControl.calculate(turretDegrees(), limitAngle(degrees)));
     }
 
     private double turretDegrees(){
@@ -115,6 +153,16 @@ public class Turret{
         positionControl.setP(P);
         positionControl.setI(I);
         positionControl.setD(D);
+    }
+
+    private double limitAngle(double angle){
+        if(angle>RobotNumbers.turretMaxPos){
+            angle = RobotNumbers.turretMaxPos;
+        }
+        if(angle<RobotNumbers.turretMinPos){
+            angle = RobotNumbers.turretMinPos;
+        }
+        return angle;
     }
 
     // private void setF(double F){
@@ -155,5 +203,15 @@ public class Turret{
     public double yawRel(){ //return relative(to start) yaw of pigeon
         updatePigeon();
         return (ypr[0]-startYaw);
+    }
+    public double yawWrap(){
+        double yaw = yawRel();
+        while(yaw>360){
+            yaw -= 360;
+        }
+        while(yaw<0){
+            yaw += 360;
+        }
+        return yaw;
     }
 }

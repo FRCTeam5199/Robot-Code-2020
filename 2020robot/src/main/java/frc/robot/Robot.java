@@ -113,6 +113,7 @@ public class Robot extends TimedRobot {
     pdp.initLogger();
     driver.setupAuto();
     driver.initPoseLogger();
+    turret.resetEncoderAndGyro();
   }
   /**
    * This function is called periodically during test mode.
