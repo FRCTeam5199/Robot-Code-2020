@@ -39,6 +39,9 @@ public class Hopper{
     private double fireOffset = 0;
     private ButtonPanel panel;
     private Joystick joy;
+    private ShuffleboardTab tab = Shuffleboard.getTab("balls");
+    private NetworkTableEntry aSpeed = tab.add("Agitator Speed", 0).getEntry();
+    private NetworkTableEntry iSpeed = tab.add("Indexer Speed", 0).getEntry();
 
 
     public void init(){
@@ -51,20 +54,20 @@ public class Hopper{
 
     public void updateSimple(){
         if(panel.getButton(8)){
-            indexer.set(ControlMode.PercentOutput, 0.6);
+            indexer.set(ControlMode.PercentOutput, iSpeed.getDouble(0.6));
         }
         else if(panel.getButton(9)){
-            indexer.set(ControlMode.PercentOutput, -0.6);
+            indexer.set(ControlMode.PercentOutput, -iSpeed.getDouble(0.6));
         }
         else{
             indexer.set(ControlMode.PercentOutput, 0);
         }
 
         if(panel.getButton(3)){
-            agitator.set(ControlMode.PercentOutput, 0.7);
+            agitator.set(ControlMode.PercentOutput, aSpeed.getDouble(0.7));
         }
         else if(panel.getButton(4)){
-            agitator.set(ControlMode.PercentOutput, -0.7);
+            agitator.set(ControlMode.PercentOutput, -aSpeed.getDouble(0.7));
         }
         else{
             agitator.set(ControlMode.PercentOutput, 0);

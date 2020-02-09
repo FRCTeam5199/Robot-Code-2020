@@ -29,6 +29,8 @@ import frc.vision.GoalChameleon;
 public class Intake{ 
     private VictorSPX victor;
     private ButtonPanel panel;
+    private ShuffleboardTab tab = Shuffleboard.getTab("balls");
+    private NetworkTableEntry speedEntry = tab.add("Intake Speed", 0).getEntry();
 
     public void init(){
         victor = new VictorSPX(RobotMap.intakeMotor);
@@ -37,10 +39,10 @@ public class Intake{
 
     public void updateSimple(){
         if(panel.getButton(1)){
-            victor.set(ControlMode.PercentOutput, 0.6);
+            victor.set(ControlMode.PercentOutput, speedEntry.getDouble(0.6));
         }
         else if(panel.getButton(2)){
-            victor.set(ControlMode.PercentOutput, -0.6);
+            victor.set(ControlMode.PercentOutput, -speedEntry.getDouble(0.6));
         }
         else{
             victor.set(ControlMode.PercentOutput, 0);
