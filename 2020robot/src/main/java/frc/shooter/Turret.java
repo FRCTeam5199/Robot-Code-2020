@@ -4,7 +4,7 @@ import frc.robot.Robot;
 import frc.robot.RobotMap;
 import frc.robot.RobotNumbers;
 import frc.vision.GoalChameleon;
-import frc.controllers.XBoxController;
+import frc.controllers.*;
 
 import java.io.IOException;
 
@@ -47,8 +47,14 @@ public class Turret{
     private NetworkTableEntry p = tab.add("P", 0).getEntry();
     private NetworkTableEntry i = tab.add("I", 0).getEntry();
     private NetworkTableEntry d = tab.add("D", 0).getEntry();
+    private NetworkTableEntry mP = tab.add("mP", 0).getEntry();
+    private NetworkTableEntry mI = tab.add("mI", 0).getEntry();
+    private NetworkTableEntry mD = tab.add("mD", 0).getEntry();
+
+    private NetworkTableEntry rotSpeed = tab.add("rotationSpeed", 0).getEntry();
 
     private GoalChameleon chameleon;
+    private ButtonPanel panel;
 
     public Turret(){
         motor = new CANSparkMax(5, MotorType.kBrushless);
@@ -57,14 +63,39 @@ public class Turret{
         chameleon = new GoalChameleon();
     }
 
+    // public void updateSimple(){
+    //     if(panel.getButton(5)){
+    //         motor.set(rotSpeed.getDouble(0));
+    //     }
+    //     else if(panel.getButton(7)){
+    //         motor.set(-rotSpeed.getDouble(0));
+    //     }
+    //     else{
+    //         motor.set(0);
+    //     }
+    // }
+
+    public void updateSimple(){
+        if(panel.getButton(5)){
+            motor.set(rotSpeed.getDouble(0));
+        }
+        else if(panel.getButton(7)){
+            motor.set(-rotSpeed.getDouble(0));
+        }
+        else{
+            motor.set(0);
+        }
+    }
+
     public void update(){
         fMultiplier = fMult.getDouble(0);
         targetPosition = pos.getDouble(0);
-        setMotorPID(p.getDouble(0), i.getDouble(0), d.getDouble(0));
+        setPosPID(p.getDouble(0), i.getDouble(0), d.getDouble(0));
+        setMotorPID(mP.getDouble(0), mI.getDouble(0), mD.getDouble(0));
         //turretOmega = -driveOmega*RobotNumbers.turretRotationSpeedMultiplier;
         //double motorOmega = turretOmega*sprocketRatio;    
         
-        //!!!!! THE TURRET ZERO IS THE MECHANICAL STOP CLOSEST TO THE GOAL
+        //!!!!! THE TURRET ZERO IS THE PHYSICAL STOP CLOSEST TO THE GOAL
 
         /*things to do:
         check if there is a valid target, if not, face north based on gyro
@@ -92,7 +123,7 @@ public class Turret{
             rotateTurret(omegaSetpoint);
         }
         else{
-            motor.set(0); //this shouldn't happen but if it does, stop the motor
+            motor.set(0); //this shouldn't happen but if it does, stop turning to prevent rapid unscheduled disassembly
         }
 
         //setF(1);
@@ -103,6 +134,8 @@ public class Turret{
     }
 
     public void init(){
+        motor = new CANSparkMax(RobotMap.turretYaw, MotorType.kBrushless);
+        panel = new ButtonPanel(3);
         fMultiplier = 0;
         //control = new PIDController(0, 0, 0);
         //control.setPID(RobotNumbers.turretP, RobotNumbers.turretI, RobotNumbers.turretD);
@@ -114,18 +147,18 @@ public class Turret{
         double degreesPerRotation = 360; 
         //set the motor encoder to return the position of the turret in degrees using the power of MATH
         encoder.setPositionConversionFactor(((turretSprocketSize/motorSprocketSize)*versaRatio*degreesPerRotation));
-        controller = motor.getPIDController();
+        //controller = motor.getPIDController();
         positionControl = new PIDController(0, 0, 0);
         encoder.setPosition(270);
         //controller.setReference(0, ControlType.kPosition);
-        setMotorPID(0.01, 0, 0);
+        //setMotorPID(0.5, 0, 0);
         setPosPID(0.001, 0, 0);
         motor.setIdleMode(IdleMode.kBrake);
     }
 
     public void resetEncoderAndGyro(){
         encoder.setPosition(0);
-        resetPigeon();
+        //resetPigeon();
     }
 
     /**

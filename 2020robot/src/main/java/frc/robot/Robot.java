@@ -28,6 +28,8 @@ public class Robot extends TimedRobot {
   PDP pdp;
   Climber climber;
   Turret turret;
+  Hopper hopper;
+  Intake intake;
   int autoStage;
   
 
@@ -54,6 +56,12 @@ public class Robot extends TimedRobot {
 
     turret = new Turret();
     turret.init();
+
+    intake = new Intake();
+    intake.init();
+
+    hopper = new Hopper();
+    hopper.init();
   }
 
   /**
@@ -74,7 +82,8 @@ public class Robot extends TimedRobot {
     //driver.initPathfinderAuto();
     //shooter.initLogger();
     //pdp.initLogger();
-    driver.setupAuto();
+    //hopper.setupSensor();
+    // driver.setupAuto();
     autoStage = 0;
   }
 
@@ -84,11 +93,12 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     //driver.updateAuto1();
-    updateAuto(Autos.auto1);
+    //updateAuto(Autos.auto1);
   }
 
   @Override
   public void teleopInit() {
+    driver.setupAuto();
     //driver.stopMotors();
     //shooter.initLogger();
     //pdp.initLogger();
@@ -100,21 +110,23 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     driver.updateTeleop();
-    pdp.update();
-    //shooter.setDriveOmega(driver.omega());
-    shooter.update();
+    // pdp.update();
+    // //shooter.setDriveOmega(driver.omega());
+    // shooter.update();
     climber.update();
   }
 
   @Override
   public void testInit() { 
     //turret.resetEncoder();
-    shooter.initLogger();
-    pdp.initLogger();
-    driver.setupAuto();
-    driver.initPoseLogger();
+    //hopper.setupSensor();
+    // shooter.initLogger();
+    // pdp.initLogger();
+    // driver.setupAuto();
+    // driver.initPoseLogger();
     turret.resetEncoderAndGyro();
   }
+  
   /**
    * This function is called periodically during test mode.
    */
@@ -122,8 +134,12 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     //driver.updateTest();
     //turret.update();
-    shooter.update();
-    pdp.update();
+    turret.updateSimple();
+    hopper.updateSimple();
+    intake.updateSimple();
+
+    // shooter.update();
+    // pdp.update();
   }
 
   @Override

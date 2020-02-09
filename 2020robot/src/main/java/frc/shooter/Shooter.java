@@ -254,6 +254,8 @@ public class Shooter{
         //setPID(1,0,0);
 
         speedo.setOutputRange(-1, 1);
+
+        chameleon.init();
     }
 
     /**

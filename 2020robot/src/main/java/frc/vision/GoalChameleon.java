@@ -1,6 +1,8 @@
 package frc.vision;
 
-import edu.wpi.first.networktables.*;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class GoalChameleon{
     public NetworkTableEntry yaw;
@@ -73,7 +75,7 @@ public class GoalChameleon{
      */
     public double getGoalDistance(){
         double[] defaultPos = {0,0,0};
-        double[] goalPos = pose.getDoubleArray(defaultPos);
+        double[] goalPos = pose.getDoubleArray(new double[3]);
         double dist = Math.sqrt(Math.pow(goalPos[0], 2)+Math.pow(goalPos[1], 2));
         return dist; //return distance
     }
