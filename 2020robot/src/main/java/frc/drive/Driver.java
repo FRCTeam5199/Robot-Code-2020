@@ -52,10 +52,8 @@ public class Driver{
     private BallChameleon chameleon = new BallChameleon();
 
     private XBoxController controller;
-    private CANSparkMax leaderL;
-    private CANSparkMax followerL1;
-    private CANSparkMax leaderR;
-    private CANSparkMax followerR1;
+    private CANSparkMax leaderL, followerL1, followerL2;
+    private CANSparkMax leaderR, followerR1, followerR2;
 
     private CANPIDController leftPID;
     private CANPIDController rightPID;
@@ -87,8 +85,10 @@ public class Driver{
         controller = new XBoxController(0);
         leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
         leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
-        followerL1 = new CANSparkMax(RobotMap.driveFollowerL, MotorType.kBrushless);
-        followerR1 = new CANSparkMax(RobotMap.driveFollowerR, MotorType.kBrushless);
+        followerL1 = new CANSparkMax(RobotMap.driveFollowerL1, MotorType.kBrushless);
+        followerR1 = new CANSparkMax(RobotMap.driveFollowerR1, MotorType.kBrushless);
+        followerL2 = new CANSparkMax(RobotMap.driveFollowerL1, MotorType.kBrushless);
+        followerR2 = new CANSparkMax(RobotMap.driveFollowerR1, MotorType.kBrushless);
 
         leftPID = leaderL.getPIDController();
         rightPID = leaderR.getPIDController();
@@ -103,6 +103,8 @@ public class Driver{
         chameleon.init();
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
+        followerL2.follow(leaderL);
+        followerR2.follow(leaderR);
         leaderL.setInverted(true);
         leaderR.setInverted(false);
         resetPigeon();

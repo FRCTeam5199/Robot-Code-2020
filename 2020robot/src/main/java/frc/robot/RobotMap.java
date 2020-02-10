@@ -6,12 +6,14 @@ public class RobotMap{
     
     //drive motors
     public static final int driveLeaderL = 1; //neo
-    public static final int driveFollowerL = 2; //neo
-    public static final int driveLeaderR = 3; //neob
-    public static final int driveFollowerR = 4; //neo
+    public static final int driveFollowerL1 = 2; //neo
+    public static final int driveFollowerL2 = 3; //neo
+    public static final int driveLeaderR = 4; //neo
+    public static final int driveFollowerR1 = 5; //neo
+    public static final int driveFollowerR2 = 6; //neo
     //shooter motors
-    public static final int shooterLeader = 5; //neo
-    public static final int shooterFollower = 6;  //neo
+    public static final int shooterLeader = 7; //neo
+    public static final int shooterFollower = 8;  //neo
     //turret
     public static final int turretYaw = 33; //550
     //climber

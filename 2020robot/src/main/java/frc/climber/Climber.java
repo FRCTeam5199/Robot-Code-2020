@@ -18,17 +18,11 @@ import frc.robot.RobotToggles;
 import frc.util.Logger;
 
 public class Climber{
-    private final VictorSPX motorA, motorB;
-    private final XBoxController xbox;
+    private VictorSPX motorA, motorB;
+    private XBoxController xbox;
 
     public String[] data = {"match time", "init time", "speed", "motor current"};
     public String[] units = {"seconds", "seconds", "rpm", "A"};
-
-    public Climber(){
-        motorA = new VictorSPX(RobotMap.climberA);
-        motorB = new VictorSPX(RobotMap.climberB);
-        xbox = new XBoxController(0);
-    }
 
     /**
      * Update the Climber object(run every tick)
@@ -61,6 +55,9 @@ public class Climber{
      * Initialize the Climber object(run during robotInit())
      */
     public void init(){
+        motorA = new VictorSPX(RobotMap.climberA);
+        motorB = new VictorSPX(RobotMap.climberB);
+        xbox = new XBoxController(0);
         motorA.setNeutralMode(NeutralMode.Brake);
         motorB.setNeutralMode(NeutralMode.Brake);
     }

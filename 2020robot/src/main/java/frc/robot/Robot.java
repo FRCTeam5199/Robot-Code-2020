@@ -134,11 +134,12 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     //driver.updateTest();
     //turret.update();
+    driver.updateTeleop();
     turret.updateSimple();
     hopper.updateSimple();
     intake.updateSimple();
 
-    // shooter.update();
+    shooter.update();
     // pdp.update();
   }
 

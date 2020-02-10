@@ -60,15 +60,15 @@ public class Shooter{
     private boolean spunUp = false;
     private boolean recoveryPID = false;
 
-    private NetworkTableEntry shooterP = tab.add("P", 0).getEntry();
-    private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
-    private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
-    private NetworkTableEntry recP = tab.add("recP", 0).getEntry();
-    private NetworkTableEntry recI = tab.add("recI", 0).getEntry();
-    private NetworkTableEntry recD = tab.add("recD", 0).getEntry();
+    private NetworkTableEntry shooterP = tab.add("P", 3e-4).getEntry();
+    private NetworkTableEntry shooterI = tab.add("I", 3.5e-7).getEntry();
+    private NetworkTableEntry shooterD = tab.add("D", 0.02).getEntry();
+    private NetworkTableEntry recP = tab.add("recP", 3e-4).getEntry();
+    private NetworkTableEntry recI = tab.add("recI", 1e-7).getEntry();
+    private NetworkTableEntry recD = tab.add("recD", 0.07).getEntry();
+    private NetworkTableEntry shooterF = tab.add("F", 0).getEntry();
 
-
-    private double P, I, D, recoveryP, recoveryI, recoveryD;
+    private double P, I, D, F, recoveryP, recoveryI, recoveryD;
     private double actualRPM;
 
     private GoalChameleon chameleon;
@@ -104,6 +104,11 @@ public class Shooter{
         P = RobotNumbers.shooterSpinUpP; //shooterP.getDouble(0);
         I = RobotNumbers.shooterSpinUpI; //shooterI.getDouble(0);
         D = RobotNumbers.shooterSpinUpD; //shooterD.getDouble(0);
+        P = shooterP.getDouble(3e-4);
+        I = shooterI.getDouble(3.5e-7);
+        D = shooterD.getDouble(0.02);
+        F = shooterF.getDouble(0);
+        
 
         //3.00E-04	1.00E-07	0.07 (tentative values, not perfect yet)
         recoveryP = recP.getDouble(3e-4);
@@ -201,10 +206,11 @@ public class Shooter{
         }
 
         if(recoveryPID){
-            setPID(recoveryP, recoveryI, recoveryD);
+            //setPID(recoveryP, recoveryI, recoveryD, 0);
+            setPID(P,I,D, F);
         }
         else{
-            setPID(P,I,D);
+            setPID(P,I,D, F);
         }
     }
 
@@ -264,10 +270,11 @@ public class Shooter{
      * @param I - I value
      * @param D - D value
      */
-    private void setPID(double P, double I, double D){
+    private void setPID(double P, double I, double D, double F){
         speedo.setP(P);
         speedo.setI(I);
         speedo.setD(D);
+        speedo.setFF(F);
     }
 
     /**
