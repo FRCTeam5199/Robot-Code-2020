@@ -36,7 +36,7 @@ public class Turret{
     private double turretOmega;
     private double robotYaw;
     private double startYaw;
-    private double[] ypr;
+    private double[] ypr = new double[3];
     private double[] startypr;
 
     private double fMultiplier;
@@ -50,6 +50,8 @@ public class Turret{
     private NetworkTableEntry mP = tab.add("mP", 0).getEntry();
     private NetworkTableEntry mI = tab.add("mI", 0).getEntry();
     private NetworkTableEntry mD = tab.add("mD", 0).getEntry();
+    private NetworkTableEntry arbDriveMult = tab.add("drive omega mult", 0).getEntry();
+    private NetworkTableEntry spinButton = tab.add("rotate", false).getEntry();
 
     private NetworkTableEntry rotSpeed = tab.add("rotationSpeed", 0).getEntry();
 
@@ -57,10 +59,6 @@ public class Turret{
     private ButtonPanel panel;
 
     public Turret(){
-        motor = new CANSparkMax(5, MotorType.kBrushless);
-        encoder = motor.getEncoder();
-        pigeon = new PigeonIMU(RobotMap.pigeon);
-        chameleon = new GoalChameleon();
     }
 
     // public void updateSimple(){
@@ -104,7 +102,7 @@ public class Turret{
         */
         double omegaSetpoint;
         if(270>turretDegrees() && turretDegrees()>0){
-            omegaSetpoint = -driveOmega;
+            omegaSetpoint = -driveOmega*arbDriveMult.getDouble(0);
         }
         else{
             omegaSetpoint = 0;
@@ -120,7 +118,9 @@ public class Turret{
 
         boolean safe = turretDegrees()<270 && turretDegrees()>0;
         if(safe){
-            rotateTurret(omegaSetpoint);
+            if(spinButton.getBoolean(false)){
+                rotateTurret(omegaSetpoint);
+            }
         }
         else{
             motor.set(0); //this shouldn't happen but if it does, stop turning to prevent rapid unscheduled disassembly
@@ -134,7 +134,10 @@ public class Turret{
     }
 
     public void init(){
+        pigeon = new PigeonIMU(RobotMap.pigeon);
+        chameleon = new GoalChameleon();
         motor = new CANSparkMax(RobotMap.turretYaw, MotorType.kBrushless);
+        encoder = motor.getEncoder();
         panel = new ButtonPanel(3);
         fMultiplier = 0;
         //control = new PIDController(0, 0, 0);
@@ -147,13 +150,14 @@ public class Turret{
         double degreesPerRotation = 360; 
         //set the motor encoder to return the position of the turret in degrees using the power of MATH
         encoder.setPositionConversionFactor(((turretSprocketSize/motorSprocketSize)*versaRatio*degreesPerRotation));
-        //controller = motor.getPIDController();
+        controller = motor.getPIDController();
         positionControl = new PIDController(0, 0, 0);
         encoder.setPosition(270);
         //controller.setReference(0, ControlType.kPosition);
-        //setMotorPID(0.5, 0, 0);
+        setMotorPID(0.5, 0, 0);
         setPosPID(0.001, 0, 0);
         motor.setIdleMode(IdleMode.kBrake);
+        chameleon.init();
     }
 
     public void resetEncoderAndGyro(){
@@ -166,7 +170,7 @@ public class Turret{
      * @param degrees
      */
     private void setTurretTarget(double degrees){
-        rotateTurret(positionControl.calculate(turretDegrees(), limitAngle(degrees)));
+        rotateTurret(-positionControl.calculate(turretDegrees(), limitAngle(degrees)));
     }
 
     private double turretDegrees(){
@@ -182,6 +186,7 @@ public class Turret{
         controller.setI(I);
         controller.setD(D);
     }
+
     private void setPosPID(double P, double I, double D){
         positionControl.setP(P);
         positionControl.setI(I);

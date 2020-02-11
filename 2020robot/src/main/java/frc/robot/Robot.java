@@ -122,7 +122,7 @@ public class Robot extends TimedRobot {
     //hopper.setupSensor();
     // shooter.initLogger();
     // pdp.initLogger();
-    // driver.setupAuto();
+    driver.setupAuto();
     // driver.initPoseLogger();
     turret.resetEncoderAndGyro();
   }
@@ -133,13 +133,13 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
     //driver.updateTest();
-    //turret.update();
-    driver.updateTeleop();
-    turret.updateSimple();
-    hopper.updateSimple();
-    intake.updateSimple();
+    turret.update();
+    //driver.updateTeleop();
+    //turret.updateSimple();
+    //hopper.updateSimple();
+    //intake.updateSimple();
 
-    shooter.update();
+    //shooter.update();
     // pdp.update();
   }
 

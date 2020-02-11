@@ -3,11 +3,14 @@ package frc.robot;
 public class RobotMap{
     //public static final int [NAME] = [ID];
     //public static final int wristMotor = 5; <-- EXAMPLE
+    public static final String goalCamName = "GoalCam";
+    public static final String ballCamName = "BallCam";
     
     //drive motors
     public static final int driveLeaderL = 1; //neo
     public static final int driveFollowerL1 = 2; //neo
     public static final int driveFollowerL2 = 3; //neo
+    
     public static final int driveLeaderR = 4; //neo
     public static final int driveFollowerR1 = 5; //neo
     public static final int driveFollowerR2 = 6; //neo

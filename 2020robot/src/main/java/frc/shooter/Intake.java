@@ -23,7 +23,7 @@ import frc.robot.RobotMap;
 import frc.robot.RobotNumbers;
 import frc.robot.RobotToggles;
 import frc.util.Logger;
-import frc.util.Permalogger;
+//import frc.util.Permalogger;
 import frc.vision.GoalChameleon;
 
 public class Intake{ 

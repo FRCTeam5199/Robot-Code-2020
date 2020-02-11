@@ -20,7 +20,7 @@ import frc.robot.RobotMap;
 import frc.robot.RobotNumbers;
 import frc.robot.RobotToggles;
 import frc.util.Logger;
-import frc.util.Permalogger;
+//import frc.util.Permalogger;
 import frc.vision.GoalChameleon;
 
 public class Shooter{
@@ -32,7 +32,7 @@ public class Shooter{
 
     private Timer timer = new Timer();
     private Logger logger = new Logger("shooter");
-    private Permalogger permalogger = new Permalogger("shooter");
+    //private Permalogger permalogger = new Permalogger("shooter");
 
     private double pulleyRatio = RobotNumbers.motorPulleySize/RobotNumbers.driverPulleySize;
 
@@ -284,14 +284,14 @@ public class Shooter{
         System.out.println("attempting to initialize logger - Shooter");
         logger.init(data, units);
         timer.start();
-        permalogger.init();
+        //permalogger.init();
     }
     /**
      * Close the Shooter logger, call during disabledInit().
      */
     public void closeLogger(){
-        permalogger.writeData(ballsShot);
-        permalogger.close();
+        //permalogger.writeData(ballsShot);
+        //permalogger.close();
         logger.close();
     }
     /**

@@ -3,6 +3,7 @@ package frc.vision;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.robot.RobotMap;
 
 public class GoalChameleon{
     public NetworkTableEntry yaw;
@@ -10,10 +11,12 @@ public class GoalChameleon{
     public NetworkTableEntry isValid;
     public NetworkTableEntry pitch;
     public NetworkTableEntry pose;
+    NetworkTableInstance table;
+    NetworkTable cameraTable;
 
     public void init(){
-        NetworkTableInstance table = NetworkTableInstance.getDefault();
-        NetworkTable cameraTable = table.getTable("chameleon-vision").getSubTable("GoalChameleon");
+        table = NetworkTableInstance.getDefault();
+        cameraTable = table.getTable("chameleon-vision").getSubTable(RobotMap.goalCamName);
         yaw = cameraTable.getEntry("targetYaw");
         size = cameraTable.getEntry("targetFittedWidth");
         isValid = cameraTable.getEntry("isValid");

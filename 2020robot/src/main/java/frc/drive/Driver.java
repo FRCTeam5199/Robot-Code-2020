@@ -32,7 +32,7 @@ import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
 
 import frc.util.Logger;
-import frc.util.Permalogger;
+//import frc.util.Permalogger;
 
 import frc.vision.BallChameleon;
 
@@ -45,7 +45,7 @@ public class Driver{
     private PigeonIMU pigeon = new PigeonIMU(RobotMap.pigeon);
     private Logger logger = new Logger("drive");
     private Logger posLogger = new Logger("positions");
-    private Permalogger odo = new Permalogger("distance");
+    //private Permalogger odo = new Permalogger("distance");
     //wheelbase 27"
     private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.2));
     DifferentialDriveOdometry odometer;
@@ -80,6 +80,11 @@ public class Driver{
     public Rotation2d robotRotation;
 
     private double feetDriven = 0;
+
+    private ShuffleboardTab tab2 = Shuffleboard.getTab("drive");
+    private NetworkTableEntry driveP = tab2.add("P", RobotNumbers.drivebaseP).getEntry();
+    private NetworkTableEntry driveI = tab2.add("I", RobotNumbers.drivebaseI).getEntry();
+    private NetworkTableEntry driveD = tab2.add("D", RobotNumbers.drivebaseD).getEntry();
 
     public Driver(){
         controller = new XBoxController(0);
@@ -125,6 +130,7 @@ public class Driver{
         double[] dataElements = {robotTranslation.getX(), robotTranslation.getY(), Logger.boolToDouble(controller.getButtonDown(5))};
         logger.writeData(dataElements);
         feetDriven = (getFeetLeft()+getFeetRight())/2;
+        setPID(driveP.getDouble(RobotNumbers.drivebaseP), driveI.getDouble(RobotNumbers.drivebaseI), driveD.getDouble(RobotNumbers.drivebaseD));
     }
 
     /**
@@ -230,14 +236,16 @@ public class Driver{
      * Drive based on FPS and omega(speed of rotation in rad/sec)
      */
     private void drivePure(double FPS, double omega){
+        omega *= RobotNumbers.turnScale;
         currentOmega = omega;
-        var chassisSpeeds = new ChassisSpeeds(Units.feetToMeters(FPS), 0, -omega);
+        var chassisSpeeds = new ChassisSpeeds(Units.feetToMeters(FPS), 0, omega);
         DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(chassisSpeeds);
         double leftVelocity = Units.metersToFeet(wheelSpeeds.leftMetersPerSecond);
         double rightVelocity = Units.metersToFeet(wheelSpeeds.rightMetersPerSecond);
+        double mult = 3.8*2.16*RobotNumbers.driveScale;
         //System.out.println("FPS: "+leftVelocity+"  "+rightVelocity+" RPM: "+convertFPStoRPM(leftVelocity)+" "+convertFPStoRPM(rightVelocity));
-        leftPID.setReference(convertFPStoRPM(leftVelocity)*3.8, ControlType.kVelocity);
-        rightPID.setReference(convertFPStoRPM(rightVelocity)*3.8, ControlType.kVelocity);
+        leftPID.setReference(convertFPStoRPM(leftVelocity)*mult, ControlType.kVelocity);
+        rightPID.setReference(convertFPStoRPM(rightVelocity)*mult, ControlType.kVelocity);
         //System.out.println(leaderL.getEncoder().getVelocity()+" "+leaderR.getEncoder().getVelocity());
     }
 
@@ -725,7 +733,7 @@ public class Driver{
         String[] dataFields = {"X", "Y", "Flag"};
         String[] units = {"Meters", "Meters", ""};
         logger.init(dataFields, units);
-        odo.init();
+        //odo.init();
     }
     
     /**
@@ -733,8 +741,8 @@ public class Driver{
      */
     public void closeLogger(){
         double[] odoData = {feetDriven};
-        odo.writeData(odoData);
-        odo.close();
+        //odo.writeData(odoData);
+        //odo.close();
         logger.close();
         posLogger.close();
     }
