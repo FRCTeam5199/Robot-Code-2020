@@ -93,7 +93,7 @@ public class Shooter{
         checkState();
         speed = shooterSpeed.getDouble(0);
         double rate = rampRate.getDouble(40);
-        boolean toggle = shooterToggle.getBoolean(false);
+        //boolean toggle = shooterToggle.getBoolean(false);
 
         if(leader.getOpenLoopRampRate()!=rate){
             leader.setOpenLoopRampRate(rate);
@@ -123,7 +123,7 @@ public class Shooter{
         // }
         //if(enabled){
             //leader.set(0.05);
-        toggle(toggle);
+        //toggle(toggle);
         if(enabled){
             //poweredState = true;
             if(RobotToggles.shooterPID){
@@ -185,6 +185,10 @@ public class Shooter{
         return 0;
     }
 
+    public boolean validTarget(){
+        return chameleon.validTarget();
+    }
+
     private void checkState(){
         if(actualRPM >= speed-50){
             atSpeed = true;
@@ -212,6 +216,10 @@ public class Shooter{
         else{
             setPID(P,I,D, F);
         }
+    }
+
+    public boolean spunUp(){
+        return spunUp;
     }
 
     /**

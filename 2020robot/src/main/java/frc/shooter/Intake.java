@@ -36,6 +36,17 @@ public class Intake{
         victor = new VictorSPX(RobotMap.intakeMotor);
         panel = new ButtonPanel(3);
     }
+    private int intakeMult;
+    /**
+     * Set intake direction
+     * @param input - -1 for out, 1 for in, 0 for none
+     */
+    public void setIntake(int input){
+        intakeMult = input;
+    }
+    public void update(){
+        victor.set(ControlMode.PercentOutput, speedEntry.getDouble(0.6)*intakeMult);
+    }
 
     public void updateSimple(){
         if(panel.getButton(1)){

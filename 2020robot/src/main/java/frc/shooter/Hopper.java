@@ -40,8 +40,8 @@ public class Hopper{
     private ButtonPanel panel;
     private Joystick joy;
     private ShuffleboardTab tab = Shuffleboard.getTab("balls");
-    private NetworkTableEntry aSpeed = tab.add("Agitator Speed", 0).getEntry();
-    private NetworkTableEntry iSpeed = tab.add("Indexer Speed", 0).getEntry();
+    private NetworkTableEntry aSpeed = tab.add("Agitator Speed", 0.6).getEntry();
+    private NetworkTableEntry iSpeed = tab.add("Indexer Speed", 0.7).getEntry();
 
 
     public void init(){
@@ -68,6 +68,29 @@ public class Hopper{
         }
         else if(panel.getButton(4)){
             agitator.set(ControlMode.PercentOutput, -aSpeed.getDouble(0.7));
+        }
+        else{
+            agitator.set(ControlMode.PercentOutput, 0);
+        }
+    }
+
+    private boolean agitatorActive, indexerActive;
+    public void setAgitator(boolean set){
+        agitatorActive = set;
+    }
+    public void setIndexer(boolean set){
+        indexerActive = set;
+    }
+
+    public void update(){
+        if(indexerActive){
+            indexer.set(ControlMode.PercentOutput, iSpeed.getDouble(0.6));
+        }
+        else{
+            indexer.set(ControlMode.PercentOutput, 0);
+        }
+        if(agitatorActive){
+            agitator.set(ControlMode.PercentOutput, aSpeed.getDouble(0.7));
         }
         else{
             agitator.set(ControlMode.PercentOutput, 0);

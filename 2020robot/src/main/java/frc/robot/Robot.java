@@ -30,6 +30,7 @@ public class Robot extends TimedRobot {
   Turret turret;
   Hopper hopper;
   Intake intake;
+  BallHandler baller;
   int autoStage;
   
 
@@ -45,8 +46,8 @@ public class Robot extends TimedRobot {
     spinner = new Spinner();
     spinner.init();
 
-    shooter = new Shooter();
-    shooter.init();
+    // shooter = new Shooter();
+    // shooter.init();
 
     pdp = new PDP();
     pdp.init();
@@ -57,11 +58,14 @@ public class Robot extends TimedRobot {
     turret = new Turret();
     turret.init();
 
-    intake = new Intake();
-    intake.init();
+    // intake = new Intake();
+    // intake.init();
 
-    hopper = new Hopper();
-    hopper.init();
+    // hopper = new Hopper();
+    // hopper.init();
+
+    baller = new BallHandler();
+    baller.init();
   }
 
   /**
@@ -134,10 +138,12 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     //driver.updateTest();
     turret.update();
-    //driver.updateTeleop();
-    //turret.updateSimple();
+    driver.updateTeleop(); //USE
+    //turret.updateSimple(); 
     //hopper.updateSimple();
     //intake.updateSimple();
+    baller.update(); //USE
+    
 
     //shooter.update();
     // pdp.update();
@@ -145,7 +151,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledInit() {
-    shooter.closeLogger();
+    baller.closeLoggers();
     pdp.closeLogger();
     driver.closeLogger();
   }
