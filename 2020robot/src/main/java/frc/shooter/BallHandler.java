@@ -42,10 +42,11 @@ public class BallHandler{
             hopper.setAgitator(false);
             hopper.setIndexer(false);
         }
-
-        shooter.toggle(joy.getButton(8));
-        hopper.setAgitator(joy.getButton(10));
-        hopper.setIndexer(joy.getButton(12));
+        if(joy.getButton(11)){
+            shooter.toggle(joy.getButton(8));
+            hopper.setAgitator(joy.getButton(10));
+            hopper.setIndexer(joy.getButton(12));
+        }
         updateMechanisms();
     }
 

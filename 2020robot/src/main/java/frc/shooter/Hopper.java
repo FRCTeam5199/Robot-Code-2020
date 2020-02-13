@@ -75,6 +75,7 @@ public class Hopper{
     }
 
     private boolean agitatorActive, indexerActive;
+    
     public void setAgitator(boolean set){
         agitatorActive = set;
     }
@@ -83,6 +84,8 @@ public class Hopper{
     }
 
     public void update(){
+        SmartDashboard.putBoolean("indexer enable", indexerActive);
+        SmartDashboard.putBoolean("agitator enable", agitatorActive);
         if(indexerActive){
             indexer.set(ControlMode.PercentOutput, iSpeed.getDouble(0.6));
         }

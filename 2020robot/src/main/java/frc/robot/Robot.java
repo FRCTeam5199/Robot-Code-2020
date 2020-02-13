@@ -129,6 +129,8 @@ public class Robot extends TimedRobot {
     driver.setupAuto();
     // driver.initPoseLogger();
     turret.resetEncoderAndGyro();
+    turret.resetPigeon();
+    turret.setBrake(true);
   }
   
   /**
@@ -137,12 +139,14 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
     //driver.updateTest();
-    turret.update();
+    
     driver.updateTeleop(); //USE
     //turret.updateSimple(); 
     //hopper.updateSimple();
     //intake.updateSimple();
     baller.update(); //USE
+    turret.setDriveOmega(driver.omega());
+    turret.update();
     
 
     //shooter.update();
@@ -151,6 +155,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledInit() {
+    turret.setBrake(false);
     baller.closeLoggers();
     pdp.closeLogger();
     driver.closeLogger();

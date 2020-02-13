@@ -169,6 +169,7 @@ public class Shooter{
         //System.out.println(leader.getEncoder().getVelocity());
         SmartDashboard.putBoolean("atSpeed", atSpeed);
         SmartDashboard.putNumber("ballsShot", ballsShot);
+        SmartDashboard.putBoolean("shooter enable", enabled);
     }
 
     /**

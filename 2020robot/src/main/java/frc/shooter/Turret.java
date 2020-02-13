@@ -106,7 +106,8 @@ public class Turret{
         */
         double omegaSetpoint;
         if(270>turretDegrees() && turretDegrees()>0){
-            omegaSetpoint = -driveOmega*arbDriveMult.getDouble(0);
+            omegaSetpoint = 0;
+            omegaSetpoint += -driveOmega*arbDriveMult.getDouble(0);
             if(joy.getButton(2)){
                 omegaSetpoint += joy.getXAxis();
             }
@@ -118,7 +119,7 @@ public class Turret{
         if(!chameleon.validTarget()){//no target
             //face north
             SmartDashboard.putString("mode", "Target Lost");
-            //omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(35+yawWrap()));
+            //omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(235+yawWrap()-360));
         }
         else{//target good
             SmartDashboard.putString("mode", "Facing Target");
@@ -139,10 +140,10 @@ public class Turret{
         }
         else{
             if(turretDegrees()>270){
-                rotateTurret(1); //rotate back towards safety
+                rotateTurret(0.1); //rotate back towards safety
             }
             else if(turretDegrees()<0){
-                rotateTurret(-1); //rotate back towards safety
+                rotateTurret(-0.1); //rotate back towards safety
             }
             else{
                 motor.set(0); //this shouldn't happen but if it does, stop turning to prevent rapid unscheduled disassembly
@@ -150,11 +151,23 @@ public class Turret{
         }
 
         //setF(1);
+        SmartDashboard.putNumber("Turret DB Omega offset", -driveOmega*arbDriveMult.getDouble(0));
         SmartDashboard.putNumber("Turret Omega", omegaSetpoint);
         SmartDashboard.putNumber("Turret Degrees", turretDegrees());
         SmartDashboard.putNumber("Turret Speed", encoder.getVelocity());
         SmartDashboard.putNumber("Turret FF", controller.getFF());
         SmartDashboard.putBoolean("Turret Safe", safe);
+        SmartDashboard.putNumber("Turret North", limitAngle(235+yawWrap()-360));
+        SmartDashboard.putNumber("YawWrap", yawWrap()-360);
+    }
+
+    public void setBrake(boolean brake){
+        if(brake){
+            motor.setIdleMode(IdleMode.kBrake);
+        }
+        else{
+            motor.setIdleMode(IdleMode.kCoast);
+        }
     }
 
     public void init(){
