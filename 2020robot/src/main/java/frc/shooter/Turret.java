@@ -45,17 +45,17 @@ public class Turret{
     private ShuffleboardTab tab = Shuffleboard.getTab("Turret");
     private NetworkTableEntry fMult = tab.add("F Multiplier", 0).getEntry();
     private NetworkTableEntry pos = tab.add("Position", 0).getEntry();
-    private NetworkTableEntry p = tab.add("P", 0).getEntry();
+    private NetworkTableEntry p = tab.add("P", 0.09).getEntry();
     private NetworkTableEntry i = tab.add("I", 0).getEntry();
     private NetworkTableEntry d = tab.add("D", 0).getEntry();
     private NetworkTableEntry mP = tab.add("mP", 0).getEntry();
     private NetworkTableEntry mI = tab.add("mI", 0).getEntry();
     private NetworkTableEntry mD = tab.add("mD", 0).getEntry();
-    private NetworkTableEntry arbDriveMult = tab.add("drive omega mult", 0).getEntry();
+    private NetworkTableEntry arbDriveMult = tab.add("drive omega mult", -0.25).getEntry();
     private NetworkTableEntry spinButton = tab.add("rotate", false).getEntry();
 
     private NetworkTableEntry rotSpeed = tab.add("rotationSpeed", 0).getEntry();
-    private NetworkTableEntry deadbandAdd = tab.add("deadband constant", 0).getEntry();
+    private NetworkTableEntry deadbandAdd = tab.add("deadband constant", 0.01).getEntry();
 
     private GoalChameleon chameleon;
     private ButtonPanel panel;
@@ -92,7 +92,7 @@ public class Turret{
     public void update(){
         fMultiplier = fMult.getDouble(0);
         targetPosition = pos.getDouble(0);
-        setPosPID(p.getDouble(0), i.getDouble(0), d.getDouble(0));
+        setPosPID(p.getDouble(0.09), i.getDouble(0), d.getDouble(0));
         //setMotorPID(mP.getDouble(0), mI.getDouble(0), mD.getDouble(0));
         //turretOmega = -driveOmega*RobotNumbers.turretRotationSpeedMultiplier;
         //double motorOmega = turretOmega*sprocketRatio;    
@@ -107,7 +107,7 @@ public class Turret{
         double omegaSetpoint;
         if(270>turretDegrees() && turretDegrees()>0){
             omegaSetpoint = 0;
-            omegaSetpoint += -driveOmega*arbDriveMult.getDouble(0);
+            omegaSetpoint += -driveOmega*arbDriveMult.getDouble(-0.28);
             if(joy.getButton(2)){
                 omegaSetpoint += joy.getXAxis();
             }
@@ -151,7 +151,7 @@ public class Turret{
         }
 
         //setF(1);
-        SmartDashboard.putNumber("Turret DB Omega offset", -driveOmega*arbDriveMult.getDouble(0));
+        SmartDashboard.putNumber("Turret DB Omega offset", -driveOmega*arbDriveMult.getDouble(-0.28));
         SmartDashboard.putNumber("Turret Omega", omegaSetpoint);
         SmartDashboard.putNumber("Turret Degrees", turretDegrees());
         SmartDashboard.putNumber("Turret Speed", encoder.getVelocity());

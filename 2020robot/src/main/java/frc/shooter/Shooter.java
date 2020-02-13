@@ -60,13 +60,13 @@ public class Shooter{
     private boolean spunUp = false;
     private boolean recoveryPID = false;
 
-    private NetworkTableEntry shooterP = tab.add("P", 3e-4).getEntry();
-    private NetworkTableEntry shooterI = tab.add("I", 3.5e-7).getEntry();
-    private NetworkTableEntry shooterD = tab.add("D", 0.02).getEntry();
+    private NetworkTableEntry shooterP = tab.add("P", 0.00032).getEntry();
+    private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
+    private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
     private NetworkTableEntry recP = tab.add("recP", 3e-4).getEntry();
     private NetworkTableEntry recI = tab.add("recI", 1e-7).getEntry();
     private NetworkTableEntry recD = tab.add("recD", 0.07).getEntry();
-    private NetworkTableEntry shooterF = tab.add("F", 0).getEntry();
+    private NetworkTableEntry shooterF = tab.add("F", 0.000185).getEntry();
 
     private double P, I, D, F, recoveryP, recoveryI, recoveryD;
     private double actualRPM;
@@ -95,19 +95,19 @@ public class Shooter{
         double rate = rampRate.getDouble(40);
         //boolean toggle = shooterToggle.getBoolean(false);
 
-        if(leader.getOpenLoopRampRate()!=rate){
-            leader.setOpenLoopRampRate(rate);
-            System.out.println("Ramp Rate Set to "+rate+", now "+leader.getOpenLoopRampRate());
-        }
+        // if(leader.getOpenLoopRampRate()!=rate){
+        //     leader.setOpenLoopRampRate(rate);
+        //     System.out.println("Ramp Rate Set to "+rate+", now "+leader.getOpenLoopRampRate());
+        // }
 
         //3.00E-04	3.50E-07	0.02
         P = RobotNumbers.shooterSpinUpP; //shooterP.getDouble(0);
         I = RobotNumbers.shooterSpinUpI; //shooterI.getDouble(0);
         D = RobotNumbers.shooterSpinUpD; //shooterD.getDouble(0);
-        P = shooterP.getDouble(3e-4);
-        I = shooterI.getDouble(3.5e-7);
-        D = shooterD.getDouble(0.02);
-        F = shooterF.getDouble(0);
+        P = shooterP.getDouble(0.00032);
+        I = shooterI.getDouble(0);
+        D = shooterD.getDouble(0);
+        F = shooterF.getDouble(0.000185);
         
 
         //3.00E-04	1.00E-07	0.07 (tentative values, not perfect yet)
