@@ -62,6 +62,10 @@ public class Turret{
 
     private double rpmOut;
 
+    public boolean track;
+
+    private int scanDirection = -1; 
+
     public Turret(){
     }
 
@@ -119,6 +123,8 @@ public class Turret{
         if(!chameleon.validTarget()){//no target
             //face north
             SmartDashboard.putString("mode", "Target Lost");
+            //omegaSetpoint = positionControl.calculate(turretDegrees(), 135);
+            //scan();
             //omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(235+yawWrap()-360));
         }
         else{//target good
@@ -131,7 +137,7 @@ public class Turret{
 
         boolean safe = turretDegrees()<=270 && turretDegrees()>=0;
         if(safe){
-            if(spinButton.getBoolean(false)){
+            if(spinButton.getBoolean(false)&&track){
                 rotateTurret(omegaSetpoint);
             }
             else{
@@ -153,7 +159,7 @@ public class Turret{
         //setF(1);
         SmartDashboard.putNumber("Turret DB Omega offset", -driveOmega*arbDriveMult.getDouble(-0.28));
         SmartDashboard.putNumber("Turret Omega", omegaSetpoint);
-        SmartDashboard.putNumber("Turret Degrees", turretDegrees());
+        SmartDashboard.putNumber("Turret Position", turretDegrees());
         SmartDashboard.putNumber("Turret Speed", encoder.getVelocity());
         SmartDashboard.putNumber("Turret FF", controller.getFF());
         SmartDashboard.putBoolean("Turret Safe", safe);
@@ -257,21 +263,39 @@ public class Turret{
         double motorRPM = turretRPM * (RobotNumbers.turretSprocketSize / RobotNumbers.motorSprocketSize) * RobotNumbers.turretGearRatio;
         //controller.setReference(motorRPM, ControlType.kVelocity);
         double deadbandComp;
-        if(motorRPM<0){
-            deadbandComp = 0.02;
+        if(track){
+            if(motorRPM<0){
+                deadbandComp = 0.02;
+            }
+            else{
+                deadbandComp = -0.02;
+            }
         }
         else{
-            deadbandComp = -0.02;
+            deadbandComp = 0;
         }
         motor.set(motorRPM/5700-deadbandComp);
         SmartDashboard.putNumber("Motor RPM out", motorRPM);
         SmartDashboard.putNumber("Turret RPM out", turretRPM);
         SmartDashboard.putNumber("Deadband Add", deadbandComp);
-        SmartDashboard.putNumber("Turret out", motorRPM/5700+deadbandComp);
+        SmartDashboard.putNumber("Turret out", motorRPM/5700-deadbandComp);
     }
 
     private void pointNorth(){
         //set position of turret to whatever angle is "north"(generally towards goal)
+    }
+
+    /**
+     * Scan the turret back and forth to find a target.
+     */
+    private void scan(){
+        if(turretDegrees()>250){
+            scanDirection = 1;
+        }
+        else if(turretDegrees()<20){
+            scanDirection = -1;
+        }
+        rotateTurret(scanDirection*2);
     }
 
 

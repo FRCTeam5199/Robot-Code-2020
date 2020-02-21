@@ -58,8 +58,9 @@ public class Robot extends TimedRobot {
     turret = new Turret();
     turret.init();
 
-    // intake = new Intake();
-    // intake.init();
+    //intake = new Intake();
+    //intake.init();
+    //intake.initPneumatic(); //jank
 
     // hopper = new Hopper();
     // hopper.init();
@@ -131,6 +132,9 @@ public class Robot extends TimedRobot {
     turret.resetEncoderAndGyro();
     turret.resetPigeon();
     turret.setBrake(true);
+    turret.track = false;
+    baller.hopper.indexSensor.setAutomaticMode(true);
+    baller.hopper.indexSensor.setEnabled(true);
   }
   
   /**
@@ -139,24 +143,18 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
     //driver.updateTest();
-    
-    driver.updateTeleop(); //USE
-    //turret.updateSimple(); 
-    //hopper.updateSimple();
-    //intake.updateSimple();
+    driver.updateTeleop(); //USE FOR PRACTICE
     baller.update(); //USE
-    turret.setDriveOmega(driver.omega());
+    //turret.setDriveOmega(driver.omega());
+    turret.track = !baller.shooting;
     turret.update();
-    
-
-    //shooter.update();
-    // pdp.update();
   }
 
   @Override
   public void disabledInit() {
     turret.setBrake(false);
-    baller.closeLoggers();
+    baller.hopper.indexSensor.setEnabled(false);
+    //baller.closeLoggers();
     pdp.closeLogger();
     driver.closeLogger();
   }

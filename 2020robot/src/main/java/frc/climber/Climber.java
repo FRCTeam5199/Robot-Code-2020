@@ -11,7 +11,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import frc.controllers.XBoxController;
+import frc.controllers.*;
 import frc.robot.RobotMap;
 import frc.robot.RobotNumbers;
 import frc.robot.RobotToggles;
@@ -20,6 +20,7 @@ import frc.util.Logger;
 public class Climber{
     private VictorSPX motorA, motorB;
     private XBoxController xbox;
+    private JoystickController joy;
 
     public String[] data = {"match time", "init time", "speed", "motor current"};
     public String[] units = {"seconds", "seconds", "rpm", "A"};
@@ -28,8 +29,8 @@ public class Climber{
      * Update the Climber object(run every tick)
      */
     public void update(){
-        double push = xbox.getRTrigger();
-        double pull = xbox.getLTrigger();
+        //double push = xbox.getRTrigger();
+        //double pull = xbox.getLTrigger();
         // if(xbox.getButton(6)){
         //     drive(-0.5);
         // }
@@ -39,7 +40,15 @@ public class Climber{
         // else{
         //     drive(0);
         // }
-        drive(push-pull);
+        if(joy.getButton(9)){
+            drive(-1);
+        }
+        else if(joy.getButton(7)){
+            drive(1);
+        }
+        else{
+            drive(0);
+        }
     }
 
     /**
@@ -58,6 +67,7 @@ public class Climber{
         motorA = new VictorSPX(RobotMap.climberA);
         motorB = new VictorSPX(RobotMap.climberB);
         xbox = new XBoxController(0);
+        joy = new JoystickController(1);
         motorA.setNeutralMode(NeutralMode.Brake);
         motorB.setNeutralMode(NeutralMode.Brake);
     }

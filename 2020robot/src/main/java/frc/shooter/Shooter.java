@@ -222,6 +222,9 @@ public class Shooter{
     public boolean spunUp(){
         return spunUp;
     }
+    public boolean recovering(){
+        return recoveryPID;
+    }
 
     /**
      * Set drive wheel RPM

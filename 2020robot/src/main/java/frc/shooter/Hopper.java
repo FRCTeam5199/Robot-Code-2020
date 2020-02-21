@@ -35,17 +35,25 @@ import edu.wpi.first.wpilibj.Joystick;
 
 public class Hopper{
     private VictorSPX agitator, indexer;
-    private Rev2mDistanceSensor indexSensor;
+    public Rev2mDistanceSensor indexSensor;
     private double fireOffset = 0;
     private ButtonPanel panel;
     private Joystick joy;
     private ShuffleboardTab tab = Shuffleboard.getTab("balls");
     private NetworkTableEntry aSpeed = tab.add("Agitator Speed", 0.6).getEntry();
     private NetworkTableEntry iSpeed = tab.add("Indexer Speed", 0.7).getEntry();
+    public NetworkTableEntry visionOverride = tab.add("VISION OVERRIDE", false).getEntry();
+    public NetworkTableEntry spinupOverride = tab.add("SPINUP OVERRIDE", false).getEntry();
+    public NetworkTableEntry disableOverride = tab.add("LOADING DISABLE", false).getEntry();
+
+    public boolean autoIndex = true;
 
 
     public void init(){
-        //indexSensor = new Rev2mDistanceSensor(Port.kOnboard, Unit.kInches , RangeProfile.kHighAccuracy);
+        autoIndex = true;
+        if(autoIndex){
+            indexSensor = new Rev2mDistanceSensor(Port.kOnboard, Unit.kInches , RangeProfile.kHighAccuracy);
+        }
         agitator = new VictorSPX(RobotMap.agitatorMotor);
         indexer = new VictorSPX(RobotMap.indexerMotor);
         panel = new ButtonPanel(3);
@@ -86,18 +94,41 @@ public class Hopper{
     public void update(){
         SmartDashboard.putBoolean("indexer enable", indexerActive);
         SmartDashboard.putBoolean("agitator enable", agitatorActive);
+        SmartDashboard.putNumber("indexer sensor", indexerSensorRange());
+        boolean indexerOverride = false;
+
+        if(indexerSensorRange()>3){
+            indexer.set(ControlMode.PercentOutput, 0.2);
+            agitator.set(ControlMode.PercentOutput, 0.2);
+            indexerOverride = true;
+        }
+        if(indexerSensorRange()<3){
+            indexer.set(ControlMode.PercentOutput, 0);
+            agitator.set(ControlMode.PercentOutput, 0);
+            indexerOverride = false;
+        }
+
         if(indexerActive){
             indexer.set(ControlMode.PercentOutput, iSpeed.getDouble(0.6));
         }
-        else{
+        else if(!indexerOverride){
             indexer.set(ControlMode.PercentOutput, 0);
         }
         if(agitatorActive){
             agitator.set(ControlMode.PercentOutput, aSpeed.getDouble(0.7));
         }
-        else{
+        else if(!indexerOverride){
             agitator.set(ControlMode.PercentOutput, 0);
         }
+
+        
+    }
+
+    public double indexerSensorRange(){
+        if(autoIndex){
+            return indexSensor.getRange();
+        }
+        return -2;
     }
 
     /*public void updateSimple(){

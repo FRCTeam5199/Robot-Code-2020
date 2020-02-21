@@ -17,6 +17,8 @@ import com.revrobotics.ControlType;
 
 import com.ctre.phoenix.sensors.PigeonIMU;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.controller.PIDController;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -85,18 +87,9 @@ public class Driver{
     private NetworkTableEntry driveP = tab2.add("P", RobotNumbers.drivebaseP).getEntry();
     private NetworkTableEntry driveI = tab2.add("I", RobotNumbers.drivebaseI).getEntry();
     private NetworkTableEntry driveD = tab2.add("D", RobotNumbers.drivebaseD).getEntry();
+    private DoubleSolenoid solenoidShifterL, solenoidShifterR;
 
     public Driver(){
-        controller = new XBoxController(0);
-        leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
-        leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
-        followerL1 = new CANSparkMax(RobotMap.driveFollowerL1, MotorType.kBrushless);
-        followerR1 = new CANSparkMax(RobotMap.driveFollowerR1, MotorType.kBrushless);
-        followerL2 = new CANSparkMax(RobotMap.driveFollowerL1, MotorType.kBrushless);
-        followerR2 = new CANSparkMax(RobotMap.driveFollowerR1, MotorType.kBrushless);
-
-        leftPID = leaderL.getPIDController();
-        rightPID = leaderR.getPIDController();
         
         //headControl = new PIDController(Kp, Ki, Kd);
     }
@@ -105,6 +98,17 @@ public class Driver{
      * Initialize the Driver object.
      */
     public void init(){
+        controller = new XBoxController(0);
+        leaderL = new CANSparkMax(RobotMap.driveLeaderL, MotorType.kBrushless);
+        leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
+        followerL1 = new CANSparkMax(RobotMap.driveFollowerL1, MotorType.kBrushless);
+        followerR1 = new CANSparkMax(RobotMap.driveFollowerR1, MotorType.kBrushless);
+        followerL2 = new CANSparkMax(RobotMap.driveFollowerL1, MotorType.kBrushless);
+        followerR2 = new CANSparkMax(RobotMap.driveFollowerR1, MotorType.kBrushless);
+        leftPID = leaderL.getPIDController();
+        rightPID = leaderR.getPIDController();
+        solenoidShifterL = new DoubleSolenoid(23, 3, 2);
+        solenoidShifterR = new DoubleSolenoid(23, 7, 6);
         chameleon.init();
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
@@ -117,6 +121,7 @@ public class Driver{
         setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
         autoStage = 0;
         autoComplete = false;
+        setLowGear(false);
         //setupPathfinderAuto();
     }
 
@@ -140,6 +145,7 @@ public class Driver{
         updateGeneric();
         invert = false;//controller.getButton(6);
         SmartDashboard.putBoolean("invert", invert);
+        setLowGear(controller.getButton(5));
         //drive(0.5,1);
         double turn = -controller.getStickRX();
         double drive;
@@ -149,7 +155,7 @@ public class Driver{
         else{
             drive = controller.getStickLY();
         }
-        pointBall = controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
+        pointBall = false;//controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
         //chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
 
         //!!!!!
@@ -248,6 +254,21 @@ public class Driver{
         rightPID.setReference(convertFPStoRPM(rightVelocity)*mult, ControlType.kVelocity);
         //System.out.println(leaderL.getEncoder().getVelocity()+" "+leaderR.getEncoder().getVelocity());
     }
+    
+    /**
+     * Set the gear of the transmissions.
+     * @param shifted whether or not the transmissions are to be shifted to low gear
+     */
+    private void setLowGear(boolean shifted){
+        if(!shifted){
+            solenoidShifterR.set(Value.kForward);
+            solenoidShifterL.set(Value.kForward);
+        }
+        if(shifted){
+            solenoidShifterR.set(Value.kReverse);
+            solenoidShifterL.set(Value.kReverse);
+        }
+    }
 
     /**
      * Set P, I, and D values for the drivetrain.
@@ -281,7 +302,10 @@ public class Driver{
      * @return speed of rotation in rad/sec
      */
     public double omega(){
-        return currentOmega;
+        double[] gyro = new double[3];
+        pigeon.getRawGyro(gyro);
+        double omegaOut = Units.degreesToRadians(gyro[0]);
+        return omegaOut;
     }
     
     //pigeon code ------------------------------------------------------------------------------------------------------------------

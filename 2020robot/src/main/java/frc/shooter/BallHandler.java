@@ -5,9 +5,10 @@ import frc.shooter.*;
 
 public class BallHandler{
     private Shooter shooter;
-    private Hopper hopper;
+    public Hopper hopper;
     private Intake intake;
     private JoystickController joy;
+    public boolean shooting;
 
     public void init(){
         joy = new JoystickController(1);
@@ -24,23 +25,33 @@ public class BallHandler{
     public void update(){
         if(joy.getHat()==180){
             intake.setIntake(1);
+            //deploy intake
+            intake.setDeploy(true);
         }
         else if(joy.getHat()==0){
             intake.setIntake(-1);
+            //deploy intake
+            intake.setDeploy(true);
         }
         else{
             intake.setIntake(0);
+            //deployn't intake
+            intake.setDeploy(false);
         }
-
+        boolean visOverride = hopper.visionOverride.getBoolean(false);
+        boolean spinOverride = hopper.spinupOverride.getBoolean(false);
+        boolean runDisable = hopper.disableOverride.getBoolean(false);
         if(joy.getButton(1)){
             shooter.toggle(true);
-            hopper.setAgitator(true);
-            hopper.setIndexer(shooter.spunUp()&&shooter.validTarget());
+            hopper.setAgitator((shooter.spunUp()||shooter.recovering()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+            hopper.setIndexer((shooter.spunUp()||shooter.recovering()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+            shooting = true;
         }
         else{
             shooter.toggle(false);
             hopper.setAgitator(false);
             hopper.setIndexer(false);
+            shooting = false;
         }
         if(joy.getButton(11)){
             shooter.toggle(joy.getButton(8));
