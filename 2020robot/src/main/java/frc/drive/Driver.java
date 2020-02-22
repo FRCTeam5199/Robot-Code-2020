@@ -49,7 +49,7 @@ public class Driver{
     private Logger posLogger = new Logger("positions");
     //private Permalogger odo = new Permalogger("distance");
     //wheelbase 27"
-    private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(21.2));
+    private DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(Units.inchesToMeters(22));
     DifferentialDriveOdometry odometer;
     private BallChameleon chameleon = new BallChameleon();
 
@@ -758,6 +758,31 @@ public class Driver{
         String[] units = {"Meters", "Meters", ""};
         logger.init(dataFields, units);
         //odo.init();
+    }
+
+    public void setBrake(boolean brake){
+        if(brake){
+            leaderL.setIdleMode(IdleMode.kBrake);
+            leaderR.setIdleMode(IdleMode.kBrake);
+            followerL1.setIdleMode(IdleMode.kBrake);
+            followerL2.setIdleMode(IdleMode.kBrake);
+            followerR1.setIdleMode(IdleMode.kBrake);
+            followerR2.setIdleMode(IdleMode.kBrake);
+        }
+        else{
+            leaderL.setIdleMode(IdleMode.kCoast);
+            leaderR.setIdleMode(IdleMode.kCoast);
+            followerL1.setIdleMode(IdleMode.kCoast);
+            followerL2.setIdleMode(IdleMode.kCoast);
+            followerR1.setIdleMode(IdleMode.kCoast);
+            followerR2.setIdleMode(IdleMode.kCoast);
+        }
+    }
+
+    public void unlockWheels(){
+        leaderR.set(0);
+        leaderL.set(0);
+        setBrake(false);
     }
     
     /**

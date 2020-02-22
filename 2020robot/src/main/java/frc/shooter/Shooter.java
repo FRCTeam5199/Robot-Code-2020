@@ -139,13 +139,16 @@ public class Shooter{
         // P = shooterP.getDouble(0.00032);
         // I = shooterI.getDouble(0);
         // D = shooterD.getDouble(0);
-        F = shooterF.getDouble(0.000185);
+        P = 0.00035;
+        I = 0;
+        D = 0;
+        F = 0.000176; //shooterF.getDouble(0.000185);
         
 
         //3.00E-04	1.00E-07	0.07 (tentative values, not perfect yet)
-        recoveryP = recP.getDouble(3e-4);
-        recoveryI = recI.getDouble(1e-7);
-        recoveryD = recD.getDouble(0.07);
+        recoveryP = 0.00037; //recP.getDouble(3e-4);
+        recoveryI = 0; //recI.getDouble(1e-7);
+        recoveryD = 0; //recD.getDouble(0.07);
 
         //setPID(P,I,D);
 
@@ -227,17 +230,14 @@ public class Shooter{
             atSpeed = true;
             spunUp = true;
         }
-        if(atSpeed && actualRPM < speed-70){
-            ballsShot++;
-        }
-        if(actualRPM < speed-70){
+        if(actualRPM < speed-30){
             atSpeed = false;
         }
 
-        if(spunUp && actualRPM<speed-80){
+        if(spunUp && actualRPM<speed-55){
             recoveryPID = true;
         }
-        if(actualRPM<speed-800){
+        if(actualRPM<speed-1200){
             recoveryPID = false;
             spunUp = false;
         }

@@ -13,6 +13,12 @@ public class Autos{
         {0,0, 0, -2}  //actual data in terminator doesn't matter at all
     };
 
+    public static final double[][] defaultAuto = {
+        {0,0,0, 1},
+        {0,2,1, -1},
+        {0,0,0, -2}
+    };
+
     public static final double[][] auto1 = {
         //{row#c0, row#c1, row#c2, row#c3},
         {-3.5, 1.3, 1, -1}, //x, y, speed, special move //r0

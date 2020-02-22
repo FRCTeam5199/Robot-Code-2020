@@ -136,7 +136,7 @@ public class Turret{
         }
         else{//target good
             SmartDashboard.putString("mode", "Facing Target");
-            omegaSetpoint += positionControl.calculate(-chameleon.getGoalAngle(), fMult.getDouble(0));
+            omegaSetpoint += positionControl.calculate(-chameleon.getGoalAngle(), -1.5);
         }
 
         //omegaSetpoint += positionControl.calculate(turretDegrees(), targetPosition);
@@ -144,7 +144,7 @@ public class Turret{
 
         boolean safe = turretDegrees()<270 && turretDegrees()>0;
         if(safe){
-            if(spinButton.getBoolean(false)&&track){
+            if(/*spinButton.getBoolean(false)&&*/track){
                 rotateTurret(omegaSetpoint);
             }
             else{

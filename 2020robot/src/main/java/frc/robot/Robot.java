@@ -10,6 +10,8 @@ package frc.robot;
 import com.revrobotics.Rev2mDistanceSensor.RangeProfile;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.drive.*;
 import frc.spinner.*;
 import frc.shooter.*;
@@ -34,6 +36,10 @@ public class Robot extends TimedRobot {
   Intake intake;
   BallHandler baller;
   int autoStage;
+  private static final String defaultAuto = "Default";
+  private static final String auto1 = "Auto 1";
+  private double[][] selectedAuto;
+  private final SendableChooser<double[][]> chooser = new SendableChooser<>();
   
 
   /**
@@ -42,6 +48,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    chooser.setDefaultOption("Default Auto", Autos.defaultAuto);
+    chooser.addOption("Auto 1", Autos.auto1);
+    SmartDashboard.putData("Auto choices", chooser);
+
     driver = new Driver();
     driver.init();
 
@@ -90,7 +100,8 @@ public class Robot extends TimedRobot {
     //shooter.initLogger();
     //pdp.initLogger();
     //hopper.setupSensor();
-    // driver.setupAuto();
+    selectedAuto = chooser.getSelected();
+    driver.setupAuto();
     autoStage = 0;
   }
 
@@ -100,12 +111,12 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     //driver.updateAuto1();
-    //updateAuto(Autos.auto1);
+    updateAuto(selectedAuto);
   }
 
   @Override
   public void teleopInit() {
-    driver.setupAuto();
+    testInit();
     //driver.stopMotors();
     //shooter.initLogger();
     //pdp.initLogger();
@@ -116,11 +127,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    driver.updateTeleop();
-    // pdp.update();
-    // //shooter.setDriveOmega(driver.omega());
-    // shooter.update();
-    climber.update();
+    testPeriodic();
   }
 
   @Override
@@ -148,6 +155,7 @@ public class Robot extends TimedRobot {
     //driver.updateTest();
     driver.updateTeleop(); //USE FOR PRACTICE
     baller.update(); //USE
+    climber.update();
     //turret.setDriveOmega(driver.omega());
     turret.track = !baller.shooting;
     turret.update();
@@ -156,6 +164,7 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     turret.setBrake(false);
+    driver.unlockWheels();
     baller.hopper.indexSensor.setEnabled(false);
     //baller.closeLoggers();
     pdp.closeLogger();
@@ -181,6 +190,8 @@ public class Robot extends TimedRobot {
     switch(action){
       case(0):
         complete = specialAction0();
+        break;
+      case(1):
         break;
     }
     return complete;

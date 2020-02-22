@@ -34,7 +34,7 @@ import com.revrobotics.Rev2mDistanceSensor.Unit;
 import edu.wpi.first.wpilibj.Joystick;
 
 public class Hopper{
-    private VictorSPX agitator, indexer;
+    public VictorSPX agitator, indexer;
     public Rev2mDistanceSensor indexSensor;
     private double fireOffset = 0;
     private ButtonPanel panel;
@@ -57,7 +57,7 @@ public class Hopper{
         agitator = new VictorSPX(RobotMap.agitatorMotor);
         indexer = new VictorSPX(RobotMap.indexerMotor);
         panel = new ButtonPanel(3);
-        joy = new Joystick(3);
+        //joy = new Joystick(3);
     }
 
     public void updateSimple(){
@@ -97,25 +97,25 @@ public class Hopper{
         SmartDashboard.putNumber("indexer sensor", indexerSensorRange());
         boolean indexerOverride = false;
 
-        if(indexerSensorRange()>3){
-            indexer.set(ControlMode.PercentOutput, 0.2);
-            agitator.set(ControlMode.PercentOutput, 0.2);
+        if(indexerSensorRange()>4){
+            indexer.set(ControlMode.PercentOutput, 0.25);
+            agitator.set(ControlMode.PercentOutput, 0.3);
             indexerOverride = true;
         }
-        if(indexerSensorRange()<3){
+        if(indexerSensorRange()<4){
             indexer.set(ControlMode.PercentOutput, 0);
             agitator.set(ControlMode.PercentOutput, 0);
             indexerOverride = false;
         }
 
         if(indexerActive){
-            indexer.set(ControlMode.PercentOutput, iSpeed.getDouble(0.6));
+            indexer.set(ControlMode.PercentOutput, .65);
         }
         else if(!indexerOverride){
             indexer.set(ControlMode.PercentOutput, 0);
         }
         if(agitatorActive){
-            agitator.set(ControlMode.PercentOutput, aSpeed.getDouble(0.7));
+            agitator.set(ControlMode.PercentOutput, .5);
         }
         else if(!indexerOverride){
             agitator.set(ControlMode.PercentOutput, 0);

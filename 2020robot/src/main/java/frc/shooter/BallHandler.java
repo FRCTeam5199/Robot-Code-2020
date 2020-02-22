@@ -42,9 +42,7 @@ public class BallHandler{
         boolean spinOverride = hopper.spinupOverride.getBoolean(false);
         boolean runDisable = hopper.disableOverride.getBoolean(false);
         if(joy.getButton(1)){
-            shooter.toggle(true);
-            hopper.setAgitator((shooter.spunUp()||shooter.recovering()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
-            hopper.setIndexer((shooter.spunUp()||shooter.recovering()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+            fireHighAccuracy();
             shooting = true;
         }
         else{
@@ -69,5 +67,23 @@ public class BallHandler{
 
     public void closeLoggers(){
         shooter.closeLogger();
+    }
+
+    public void fireHighSpeed(){
+        boolean visOverride = hopper.visionOverride.getBoolean(false);
+        boolean spinOverride = hopper.spinupOverride.getBoolean(false);
+        boolean runDisable = hopper.disableOverride.getBoolean(false);
+        shooter.toggle(true);
+        hopper.setAgitator((shooter.spunUp()||shooter.recovering()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+        hopper.setIndexer((shooter.spunUp()||shooter.recovering()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+    }
+
+    public void fireHighAccuracy(){
+        boolean visOverride = hopper.visionOverride.getBoolean(false);
+        boolean spinOverride = hopper.spinupOverride.getBoolean(false);
+        boolean runDisable = hopper.disableOverride.getBoolean(false);
+        shooter.toggle(true);
+        hopper.setAgitator((shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+        hopper.setIndexer((shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
     }
 }
