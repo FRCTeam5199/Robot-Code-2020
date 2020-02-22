@@ -123,6 +123,13 @@ public class Turret{
         if(!chameleon.validTarget()){//no target
             //face north
             SmartDashboard.putString("mode", "Target Lost");
+            // if(turretDegrees()>250){
+            //     scanDirection = 1;
+            // }
+            // else if(turretDegrees()<20){
+            //     scanDirection = -1;
+            // }
+            // omegaSetpoint = scanDirection;
             //omegaSetpoint = positionControl.calculate(turretDegrees(), 135);
             //scan();
             //omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(235+yawWrap()-360));
@@ -135,7 +142,7 @@ public class Turret{
         //omegaSetpoint += positionControl.calculate(turretDegrees(), targetPosition);
         omegaSetpoint *= -1;
 
-        boolean safe = turretDegrees()<=270 && turretDegrees()>=0;
+        boolean safe = turretDegrees()<270 && turretDegrees()>0;
         if(safe){
             if(spinButton.getBoolean(false)&&track){
                 rotateTurret(omegaSetpoint);
@@ -145,10 +152,10 @@ public class Turret{
             }
         }
         else{
-            if(turretDegrees()>270){
+            if(turretDegrees()>268){
                 rotateTurret(0.1); //rotate back towards safety
             }
-            else if(turretDegrees()<0){
+            else if(turretDegrees()<2){
                 rotateTurret(-0.1); //rotate back towards safety
             }
             else{
@@ -265,10 +272,13 @@ public class Turret{
         double deadbandComp;
         if(track){
             if(motorRPM<0){
-                deadbandComp = 0.02;
+                deadbandComp = 0.015;
+            }
+            else if(motorRPM>0){
+                deadbandComp = -0.015;
             }
             else{
-                deadbandComp = -0.02;
+                deadbandComp = 0;
             }
         }
         else{

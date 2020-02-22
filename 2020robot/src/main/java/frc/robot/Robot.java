@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import com.revrobotics.Rev2mDistanceSensor.RangeProfile;
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.drive.*;
 import frc.spinner.*;
@@ -134,6 +136,7 @@ public class Robot extends TimedRobot {
     turret.setBrake(true);
     turret.track = false;
     baller.hopper.indexSensor.setAutomaticMode(true);
+    baller.hopper.indexSensor.setRangeProfile(RangeProfile.kHighSpeed);
     baller.hopper.indexSensor.setEnabled(true);
   }
   

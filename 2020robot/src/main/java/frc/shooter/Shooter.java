@@ -39,6 +39,7 @@ public class Shooter{
     private ShuffleboardTab tab = Shuffleboard.getTab("Shooter");
     private NetworkTableEntry shooterSpeed = tab.add("Shooter Speed", 0).getEntry();
     private NetworkTableEntry shooterToggle = tab.add("Shooter Toggle", false).getEntry();
+    private NetworkTableEntry manualSpeedOverride = tab.add("SPEED OVERRIDE", false).getEntry();
     private NetworkTableEntry rampRate = tab.add("Ramp Rate", 40).getEntry();
 
     public String[] data = {
@@ -68,6 +69,10 @@ public class Shooter{
     private NetworkTableEntry recD = tab.add("recD", 0.07).getEntry();
     private NetworkTableEntry shooterF = tab.add("F", 0.000185).getEntry();
 
+    private NetworkTableEntry closeSpeedEntry = tab.add("close speed", 3000).getEntry();
+    private NetworkTableEntry farSpeedEntry = tab.add("far speed", 4000).getEntry();
+    private NetworkTableEntry farthestSpeedEntry = tab.add("farthest speed", 4700).getEntry();
+
     private double P, I, D, F, recoveryP, recoveryI, recoveryD;
     private double actualRPM;
 
@@ -92,6 +97,33 @@ public class Shooter{
         actualRPM = leader.getEncoder().getVelocity();
         checkState();
         speed = shooterSpeed.getDouble(0);
+        //put code here to set speed based on distance to goal
+        double closeDist = 3; //close zone low end distance
+        double closeSpeed = closeSpeedEntry.getDouble(3000); //close zone speed
+        double farDist = 4; //far zone low end distance
+        double farSpeed = farSpeedEntry.getDouble(4500); //far zone speed
+        double farthestDist = 6; //farthest zone low end distance
+        double farthestSpeed = farthestSpeedEntry.getDouble(4700); //farthest zone speed
+
+        if(chameleon.getGoalDistance()>closeDist && chameleon.getGoalDistance()<farDist){//close zone
+            SmartDashboard.putString("ZONE", "close");
+            speed = closeSpeed;
+        }
+        else if(chameleon.getGoalDistance()>farDist && chameleon.getGoalDistance()<farthestDist){ //far zone
+            SmartDashboard.putString("ZONE", "far");
+            speed = farSpeed;
+        }
+        else if(chameleon.getGoalDistance()>farthestDist){ //farthest zone
+            SmartDashboard.putString("ZONE", "farthest");
+            speed = farthestSpeed;
+        }
+        else{
+            SmartDashboard.putString("ZONE", "screwed up?");
+        }
+
+        if(manualSpeedOverride.getBoolean(false)){
+            speed = shooterSpeed.getDouble(0);
+        }
         double rate = rampRate.getDouble(40);
         //boolean toggle = shooterToggle.getBoolean(false);
 
@@ -104,9 +136,9 @@ public class Shooter{
         P = RobotNumbers.shooterSpinUpP; //shooterP.getDouble(0);
         I = RobotNumbers.shooterSpinUpI; //shooterI.getDouble(0);
         D = RobotNumbers.shooterSpinUpD; //shooterD.getDouble(0);
-        P = shooterP.getDouble(0.00032);
-        I = shooterI.getDouble(0);
-        D = shooterD.getDouble(0);
+        // P = shooterP.getDouble(0.00032);
+        // I = shooterI.getDouble(0);
+        // D = shooterD.getDouble(0);
         F = shooterF.getDouble(0.000185);
         
 
@@ -205,14 +237,14 @@ public class Shooter{
         if(spunUp && actualRPM<speed-80){
             recoveryPID = true;
         }
-        if(actualRPM<10){
+        if(actualRPM<speed-800){
             recoveryPID = false;
             spunUp = false;
         }
 
         if(recoveryPID){
-            //setPID(recoveryP, recoveryI, recoveryD, 0);
-            setPID(P,I,D, F);
+            setPID(recoveryP, recoveryI, recoveryD, F);
+            //setPID(P,I,D, F);
         }
         else{
             setPID(P,I,D, F);
@@ -274,6 +306,7 @@ public class Shooter{
         speedo.setOutputRange(-1, 1);
 
         chameleon.init();
+        SmartDashboard.putString("ZONE", "none");
     }
 
     /**
