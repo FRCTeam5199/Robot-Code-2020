@@ -66,6 +66,10 @@ public class Turret{
 
     private int scanDirection = -1; 
 
+    private double targetAngle = 225;
+    public boolean atTarget = false;
+    public boolean chasingTarget = false;
+
     public Turret(){
     }
 
@@ -96,7 +100,8 @@ public class Turret{
     public void update(){
         fMultiplier = fMult.getDouble(0);
         targetPosition = pos.getDouble(0);
-        setPosPID(p.getDouble(0.09), i.getDouble(0), d.getDouble(0));
+        //setPosPID(p.getDouble(0.09), i.getDouble(0), d.getDouble(0));
+        setPosPID(0.06, 0.00001, 0.001);
         //setMotorPID(mP.getDouble(0), mI.getDouble(0), mD.getDouble(0));
         //turretOmega = -driveOmega*RobotNumbers.turretRotationSpeedMultiplier;
         //double motorOmega = turretOmega*sprocketRatio;    
@@ -111,7 +116,7 @@ public class Turret{
         double omegaSetpoint;
         if(270>turretDegrees() && turretDegrees()>0){
             omegaSetpoint = 0;
-            omegaSetpoint += -driveOmega*arbDriveMult.getDouble(-0.28);
+            //omegaSetpoint += -driveOmega*arbDriveMult.getDouble(-0.28);
             if(joy.getButton(2)){
                 omegaSetpoint += joy.getXAxis();
             }
@@ -130,22 +135,33 @@ public class Turret{
             //     scanDirection = -1;
             // }
             // omegaSetpoint = scanDirection;
-            //omegaSetpoint = positionControl.calculate(turretDegrees(), 135);
+            if(chasingTarget){
+                //System.out.println(chasingTarget);
+                omegaSetpoint = positionControl.calculate(turretDegrees(), targetAngle);
+            }
             //scan();
             //omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(235+yawWrap()-360));
         }
         else{//target good
             SmartDashboard.putString("mode", "Facing Target");
-            omegaSetpoint += positionControl.calculate(-chameleon.getGoalAngle(), -1.5);
+            omegaSetpoint += positionControl.calculate(-chameleon.getGoalAngle(), -1.8);
         }
 
         //omegaSetpoint += positionControl.calculate(turretDegrees(), targetPosition);
         omegaSetpoint *= -1;
 
-        boolean safe = turretDegrees()<270 && turretDegrees()>0;
+        if(Math.abs(omegaSetpoint)<0.01){
+            atTarget = true;
+        }
+        else{
+            atTarget = false;
+        }
+
+        boolean safe = turretDegrees()<271 && turretDegrees()>-1;
         if(safe){
             if(/*spinButton.getBoolean(false)&&*/track){
                 rotateTurret(omegaSetpoint);
+                //System.out.println("Attempting to rotate the POS");
             }
             else{
                 rotateTurret(0);
@@ -172,6 +188,14 @@ public class Turret{
         SmartDashboard.putBoolean("Turret Safe", safe);
         SmartDashboard.putNumber("Turret North", limitAngle(235+yawWrap()-360));
         SmartDashboard.putNumber("YawWrap", yawWrap()-360);
+        SmartDashboard.putBoolean("Turret At Target", atTarget);
+        //chasingTarget = false;
+    }
+
+    public boolean setTargetAngle(double target){
+        targetAngle = target;
+        chasingTarget = true;
+        return atTarget;
     }
 
     public void setBrake(boolean brake){
@@ -270,11 +294,11 @@ public class Turret{
         double motorRPM = turretRPM * (RobotNumbers.turretSprocketSize / RobotNumbers.motorSprocketSize) * RobotNumbers.turretGearRatio;
         //controller.setReference(motorRPM, ControlType.kVelocity);
         double deadbandComp;
-        if(track){
-            if(motorRPM<0){
+        if(track){ //make if true
+            if(motorRPM<0){ // make if <usual rpm
                 deadbandComp = 0.015;
             }
-            else if(motorRPM>0){
+            else if(motorRPM>0){ //make if >usual rpm
                 deadbandComp = -0.015;
             }
             else{

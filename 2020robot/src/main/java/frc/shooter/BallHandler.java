@@ -1,10 +1,11 @@
 package frc.shooter;
 
+import edu.wpi.first.wpilibj.Timer;
 import frc.controllers.*;
 import frc.shooter.*;
 
 public class BallHandler{
-    private Shooter shooter;
+    public Shooter shooter;
     public Hopper hopper;
     private Intake intake;
     private JoystickController joy;
@@ -23,20 +24,26 @@ public class BallHandler{
      * Update all the mechanisms being handled by the BallHandler.
      */
     public void update(){
+        if(joy.getButtonDown(6)){
+            intake.setDeploy(true);
+        }
+        if(joy.getButtonDown(4)){
+            intake.setDeploy(false);
+        }
         if(joy.getHat()==180){
             intake.setIntake(1);
             //deploy intake
-            intake.setDeploy(true);
+            //intake.setDeploy(true);
         }
         else if(joy.getHat()==0){
             intake.setIntake(-1);
             //deploy intake
-            intake.setDeploy(true);
+            //intake.setDeploy(true);
         }
         else{
             intake.setIntake(0);
             //deployn't intake
-            intake.setDeploy(false);
+            //intake.setDeploy(false);
         }
         boolean visOverride = hopper.visionOverride.getBoolean(false);
         boolean spinOverride = hopper.spinupOverride.getBoolean(false);
@@ -59,7 +66,7 @@ public class BallHandler{
         updateMechanisms();
     }
 
-    private void updateMechanisms(){
+    public void updateMechanisms(){
         shooter.update();
         intake.update();
         hopper.update();
@@ -85,5 +92,57 @@ public class BallHandler{
         shooter.toggle(true);
         hopper.setAgitator((shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
         hopper.setIndexer((shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+    }
+
+    public void stopFiring(){
+        shooter.toggle(false);
+        hopper.setAgitator(false);
+        hopper.setIndexer(false);
+        shooting = false;
+    }
+
+    private Timer shooterTimer;
+    public void setupShooterTimer(){
+        shooterTimer = new Timer();
+        shooterTimer.stop();
+        shooterTimer.reset();
+        stopFiring();
+    }
+
+    public boolean allBallsFired = false;
+    private boolean timerFlag = false;
+    public void fireThreeBalls(){
+        fireHighAccuracy();
+        shooting = true;
+        allBallsFired = false;
+        //return true if speed has been at target speed for a certain amount of time
+        // if(shooter.atSpeed&&shooterTimer.get()>2){
+        //     shooterTimer.stop();   //stop the timerasw
+        //     //shooterTimer.reset();  //set the timer to zero
+        //     stopFiring();          //stop firing
+        //     allBallsFired = true;
+        // }
+        if((shooter.actualRPM>shooter.speed-50)){
+            if(!timerFlag){
+                shooterTimer.start();
+                timerFlag = true;
+                System.out.println("Starting Timer");
+            }
+        }
+        if(!(shooter.actualRPM>shooter.speed-50)){
+            timerFlag = false;
+            shooterTimer.stop();
+            System.out.println("Stopping Timer");
+            //shooterTimer.reset();
+        }
+        if((shooter.actualRPM>shooter.speed-50)&&shooterTimer.get()>1.2){
+            stopFiring();
+            shooterTimer.stop();
+            allBallsFired = true;
+            System.out.println("STOPPING THINGS!!!!!!");
+        }
+
+        System.out.println(shooterTimer.get()+" "+(shooter.actualRPM>shooter.speed-50));
+        updateMechanisms();
     }
 }

@@ -5,6 +5,8 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.RobotMap;
 
+import edu.wpi.first.wpilibj.LinearFilter;
+
 public class GoalChameleon{
     public NetworkTableEntry yaw;
     public NetworkTableEntry size;
@@ -13,8 +15,10 @@ public class GoalChameleon{
     public NetworkTableEntry pose;
     NetworkTableInstance table;
     NetworkTable cameraTable;
+    LinearFilter filter;
 
     public void init(){
+        filter = LinearFilter.movingAverage(5);
         table = NetworkTableInstance.getDefault();
         cameraTable = table.getTable("chameleon-vision").getSubTable(RobotMap.goalCamName);
         yaw = cameraTable.getEntry("targetYaw");
@@ -25,7 +29,7 @@ public class GoalChameleon{
     }
 
     public void update(){
-        
+        getGoalAngleSmoothed();
     }
 
     /**
@@ -34,6 +38,18 @@ public class GoalChameleon{
      */
     public boolean validTarget(){
         return isValid.getBoolean(false);
+    }
+
+    /**
+     * Get angle between crosshair and goal left/right with filter calculation.
+     * @return angle between crosshair and goal, left negative, 29.8 degrees in both directions.
+     */
+    public double getGoalAngleSmoothed(){ 
+        double angle = yaw.getDouble(0);
+        if(isValid.getBoolean(false)){
+            return filter.calculate(angle);
+        }
+        return 0;
     }
 
     /**

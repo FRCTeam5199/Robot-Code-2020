@@ -19,9 +19,9 @@ public class RobotNumbers{
     public static final double driveScale = 1;
     public static final double turnScale = 0.7;
 
-    public static final double drivebaseP = 3e-5;
+    public static final double drivebaseP = 2.7e-5;
     public static final double drivebaseI = 0;
-    public static final double drivebaseD = 7e-4;
+    public static final double drivebaseD = 25e-4;
 
     public static final double headingP = 0.05;
     public static final double headingI = 0;
@@ -32,7 +32,7 @@ public class RobotNumbers{
     /**
      * error tolerance between actual X and Y positions and waypoint X and Y positions
      */
-    public static final double autoTolerance = 0.3;
+    public static final double autoTolerance = 0.2;
 
     public static final double wheelDiameter = 6; //update: now it's used once
     public static final double maxMotorSpeed = 5000; //theoretical max motor speed

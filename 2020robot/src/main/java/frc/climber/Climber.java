@@ -25,6 +25,9 @@ public class Climber{
     public String[] data = {"match time", "init time", "speed", "motor current"};
     public String[] units = {"seconds", "seconds", "rpm", "A"};
 
+    private ShuffleboardTab tab = Shuffleboard.getTab("climber");
+    private NetworkTableEntry speedEntry = tab.add("Climber Speed", 0.25).getEntry();
+
     /**
      * Update the Climber object(run every tick)
      */
@@ -41,10 +44,10 @@ public class Climber{
         //     drive(0);
         // }
         if(joy.getButton(9)){
-            drive(-1);
+            drive(-speedEntry.getDouble(0.25));
         }
         else if(joy.getButton(7)){
-            drive(1);
+            drive(speedEntry.getDouble(0.25));
         }
         else{
             drive(0);

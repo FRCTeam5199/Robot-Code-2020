@@ -49,7 +49,12 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     chooser.setDefaultOption("Default Auto", Autos.defaultAuto);
-    chooser.addOption("Auto 1", Autos.auto1);
+    //chooser.addOption("Auto 1", Autos.auto1);      
+    chooser.addOption("Aim Only", Autos.aimOnlyAuto);
+    chooser.addOption("Aim+Shoot", Autos.shootOnlyAuto);
+    chooser.addOption("Drive+Aim+Shoot Rightmost", Autos.runAimShootAutoRightmost);
+    chooser.addOption("Spinup Only", Autos.spinupOnlyAuto);
+    chooser.addOption("Drive+Aim+Shoot Rightmost goto Trench", Autos.runAimShootTrenchAutoRightmost);
     SmartDashboard.putData("Auto choices", chooser);
 
     driver = new Driver();
@@ -103,6 +108,10 @@ public class Robot extends TimedRobot {
     selectedAuto = chooser.getSelected();
     driver.setupAuto();
     autoStage = 0;
+    turret.resetEncoderAndGyro();
+    turret.resetPigeon();
+    turret.setBrake(true);
+    turret.track = false;
   }
 
   /**
@@ -110,7 +119,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
-    //driver.updateAuto1();
     updateAuto(selectedAuto);
   }
 
@@ -137,7 +145,7 @@ public class Robot extends TimedRobot {
     // shooter.initLogger();
     // pdp.initLogger();
     driver.setupAuto();
-    // driver.initPoseLogger();
+    driver.initPoseLogger();
     turret.resetEncoderAndGyro();
     turret.resetPigeon();
     turret.setBrake(true);
@@ -152,13 +160,14 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
-    //driver.updateTest();
-    driver.updateTeleop(); //USE FOR PRACTICE
-    baller.update(); //USE
-    climber.update();
+    driver.updateTest();
+    //driver.updateTeleop(); //USE FOR PRACTICE
+    //baller.update(); //USE
+    //climber.update();
     //turret.setDriveOmega(driver.omega());
     turret.track = !baller.shooting;
-    turret.update();
+    //turret.update();
+    SmartDashboard.putNumber("drive omega", driver.omega());
   }
 
   @Override
@@ -188,17 +197,70 @@ public class Robot extends TimedRobot {
     boolean complete = false;
     int action = (int)actionToPerform; //done because im lazy
     switch(action){
-      case(0):
+      case(0): 
         complete = specialAction0();
         break;
-      case(1):
+      case(1): //action 1 is to aim the turret to 135
+        complete = specialActionAimTurret(100);
+        break;
+      case(2): //action 2 is to shoot all the balls in the hopper
+        complete = specialActionFireAll();
+        break;
+      case(3):
+        complete = specialActionSetupShooter();
+        break;
+      case(4):
+        complete = specialActionDisableTurret();
+        break;
+      case(5):
+        complete = specialActionSpinUpShooter();
         break;
     }
     return complete;
   }
 
   private boolean specialAction0(){
+    SmartDashboard.putString("Auto Mode", "Going Fishing");
     System.out.println("SPECIAL ACTION 0");
     return true;
+  }
+
+  int cycles = 0;
+  private boolean specialActionAimTurret(double angle){
+    cycles++;
+    //turret.chasingTarget = true;
+    SmartDashboard.putString("Auto Mode", "Aiming Turret to "+angle+" degrees for "+cycles+" cycles, chasingTarget = "+turret.chasingTarget);
+    turret.setTargetAngle(angle);
+    turret.chasingTarget = true;
+    turret.track = true;
+    turret.update();
+    return turret.atTarget;
+  }
+
+  private boolean specialActionDisableTurret(){
+    SmartDashboard.putString("Auto Mode", "Disabling Turret");
+    turret.chasingTarget = false;
+    turret.track = false;
+    turret.update();
+    return true;
+  }
+
+  private boolean specialActionSpinUpShooter(){
+    baller.shooter.toggle(true);
+    baller.updateMechanisms();
+    return true;
+  }
+
+  private boolean specialActionSetupShooter(){
+    baller.setupShooterTimer();
+    cycles = 0;
+    return true;
+  }
+  private boolean specialActionFireAll(){
+    cycles++;
+    SmartDashboard.putString("Auto Mode", "Shooting Balls for "+cycles+" cycles");
+    baller.fireThreeBalls();
+    //baller.update();
+    return baller.allBallsFired;
   }
 }

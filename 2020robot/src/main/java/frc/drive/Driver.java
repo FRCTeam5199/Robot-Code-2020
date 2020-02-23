@@ -103,8 +103,8 @@ public class Driver{
         leaderR = new CANSparkMax(RobotMap.driveLeaderR, MotorType.kBrushless);
         followerL1 = new CANSparkMax(RobotMap.driveFollowerL1, MotorType.kBrushless);
         followerR1 = new CANSparkMax(RobotMap.driveFollowerR1, MotorType.kBrushless);
-        followerL2 = new CANSparkMax(RobotMap.driveFollowerL1, MotorType.kBrushless);
-        followerR2 = new CANSparkMax(RobotMap.driveFollowerR1, MotorType.kBrushless);
+        followerL2 = new CANSparkMax(RobotMap.driveFollowerL2, MotorType.kBrushless);
+        followerR2 = new CANSparkMax(RobotMap.driveFollowerR2, MotorType.kBrushless);
         leftPID = leaderL.getPIDController();
         rightPID = leaderR.getPIDController();
         solenoidShifterL = new DoubleSolenoid(23, 3, 2);
@@ -383,18 +383,18 @@ public class Driver{
 
     //getRotations - get wheel rotations on encoder
     public double getRotationsLeft(){
-        return (leaderL.getEncoder().getPosition())/6.8;
+        return (leaderL.getEncoder().getPosition())/9;
     }
     public double getRotationsRight(){
-        return (leaderR.getEncoder().getPosition())/6.8;
+        return (leaderR.getEncoder().getPosition())/9;
     }
 
     //getRPM - get wheel RPM from encoder
     public double getRPMLeft(){
-        return (leaderL.getEncoder().getVelocity())/6.8;
+        return (leaderL.getEncoder().getVelocity())/9;
     }
     public double getRPMRight(){
-        return (leaderR.getEncoder().getVelocity())/6.8;
+        return (leaderR.getEncoder().getVelocity())/9;
     }
 
     //getIPS - get wheel IPS from encoder

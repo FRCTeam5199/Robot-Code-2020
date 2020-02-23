@@ -54,10 +54,10 @@ public class Shooter{
     public String[] units = {"seconds", "seconds", "rpm", "rpm", "C", "A", "T/F", "num", "num", "num", "num", "num", "num", "meters"};
 
     private double targetRPM;
-    private double speed;
+    public double speed;
     private int ballsShot = 0;
     private boolean poweredState;
-    private boolean atSpeed = false;
+    public boolean atSpeed = false;
     private boolean spunUp = false;
     private boolean recoveryPID = false;
 
@@ -74,7 +74,7 @@ public class Shooter{
     private NetworkTableEntry farthestSpeedEntry = tab.add("farthest speed", 4700).getEntry();
 
     private double P, I, D, F, recoveryP, recoveryI, recoveryD;
-    private double actualRPM;
+    public double actualRPM;
 
     private GoalChameleon chameleon;
 
@@ -124,6 +124,9 @@ public class Shooter{
         if(manualSpeedOverride.getBoolean(false)){
             speed = shooterSpeed.getDouble(0);
         }
+
+        speed = 4000; //set in stone speed
+
         double rate = rampRate.getDouble(40);
         //boolean toggle = shooterToggle.getBoolean(false);
 

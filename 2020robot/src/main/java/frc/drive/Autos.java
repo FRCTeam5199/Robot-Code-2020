@@ -14,9 +14,55 @@ public class Autos{
     };
 
     public static final double[][] defaultAuto = {
-        {0,0,0, 1},
-        {0,2,1, -1},
+        {0,0,0, 0},
+        {0,1.2,0.4, -1}, //was 2.5
         {0,0,0, -2}
+    };
+
+    public static final double[][] runAimShootAutoRightmost = {
+        //{0,0,0, 5},
+        {0.8,1.2,0.3, -1}, //was 0, 2.5
+        {0,0,0, 1}, //s-comm 1 = turn turret to 135
+        {0,0,0, 4}, 
+        {0,0,0, 3}, //s-comm 3 = setup shooter
+        {0,0,0, 2}, //s-comm 2 = shoot all balls in robot
+        {0,0,0, 0}, //take a break
+        {0,0,0, -2}
+    };
+
+    public static final double[][] runAimShootTrenchAutoRightmost = {
+        //{0,0,0, 5},
+        {0.2,1.2,0.3, -1}, //was 0, 2.5
+        {0,0,0, 1}, //s-comm 1 = turn turret to 135
+        {0,0,0, 4}, 
+        {0,0,0, 3}, //s-comm 3 = setup shooter
+        {0,0,0, 2}, //s-comm 2 = shoot all balls in robot
+        {0,0,0, 0}, //take a break
+        {0,2.4,0.3, -1},
+        {0,3.5,0.3, -1},
+        {0,0,0, -2}
+    };
+
+    public static final double[][] spinupOnlyAuto = {
+        {0,0,0, 5},
+        {0,0,0, -2}
+    };
+
+    public static final double[][] aimOnlyAuto = {
+        {0,0,0, 1}, //s-comm 1 = turn turret to 135
+        {0,0,0, 4}, //s-comm 4 = disable turret
+      //{0,0,0, 2}, //s-comm 2 = shoot all balls in robot
+        {0,0,0, -2} //term
+    };
+
+    public static final double[][] shootOnlyAuto = {
+        {0,0,0, 1}, //s-comm 1 = turn turret to 135
+        {0,0,0, 4}, 
+        {0,0,0, 3}, //s-comm 3 = setup shooter
+        {0,0,0, 2}, //s-comm 2 = shoot all balls in robot
+        {0,0,0, 0}, //take a break
+        {0,2.5,0.25, -1}, //move 2.5 forward
+        {0,0,0, -2} //term
     };
 
     public static final double[][] auto1 = {
