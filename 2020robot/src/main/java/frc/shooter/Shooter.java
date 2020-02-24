@@ -125,7 +125,7 @@ public class Shooter{
             speed = shooterSpeed.getDouble(0);
         }
 
-        speed = 4000; //set in stone speed
+        speed = 4040; //set in stone speed
 
         double rate = rampRate.getDouble(40);
         //boolean toggle = shooterToggle.getBoolean(false);

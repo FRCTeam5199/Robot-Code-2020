@@ -19,14 +19,43 @@ public class Autos{
         {0,0,0, -2}
     };
 
+    public static final double[][] intakeOnlyAuto = {
+        {0,0,0, 6},
+        {0,3.8,0.4, -1},
+        {0,0,0, 7},
+        {0,0,0, -2}
+    };
+
+    public static final double[][] intakeTargetOnlyAuto = {
+        {0,0,0, 6},
+        {0,3.8,0.4, -1},
+        {0,0,0, 1},
+        {0,0,0, 4},
+        {0,0,0, 7},
+        {0,0,0, -2}
+    };
+
+    public static final double[][] intakeSpinupTargetShootAuto = {
+        {0,0,0, 5}, //spinup shooter
+        {0,0,0, 6}, //start intake
+        {0,3.8,0.4, -1}, //move
+        {0,0,0, 1}, //turn
+        {0,0,0, 4}, //aim
+        {0,0,0, 7}, //stop intake
+        {0,0,0, 3}, //prep shoot
+        {0,0,0, 2}, //shoot all
+        {0,0,0, -2}
+    };
+
     public static final double[][] runAimShootAutoRightmost = {
         //{0,0,0, 5},
-        {0.8,1.2,0.3, -1}, //was 0, 2.5
+        {0.8,1.3,0.3, -1}, //was 0, 2.5
         {0,0,0, 1}, //s-comm 1 = turn turret to 135
         {0,0,0, 4}, 
         {0,0,0, 3}, //s-comm 3 = setup shooter
         {0,0,0, 2}, //s-comm 2 = shoot all balls in robot
         {0,0,0, 0}, //take a break
+        {0,0,0, 6},
         {0,0,0, -2}
     };
 
@@ -38,6 +67,7 @@ public class Autos{
         {0,0,0, 3}, //s-comm 3 = setup shooter
         {0,0,0, 2}, //s-comm 2 = shoot all balls in robot
         {0,0,0, 0}, //take a break
+        {0,0,0, 6},
         {0,2.4,0.3, -1},
         {0,3.5,0.3, -1},
         {0,0,0, -2}

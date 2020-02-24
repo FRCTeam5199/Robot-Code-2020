@@ -87,6 +87,7 @@ public class Driver{
     private NetworkTableEntry driveP = tab2.add("P", RobotNumbers.drivebaseP).getEntry();
     private NetworkTableEntry driveI = tab2.add("I", RobotNumbers.drivebaseI).getEntry();
     private NetworkTableEntry driveD = tab2.add("D", RobotNumbers.drivebaseD).getEntry();
+    private NetworkTableEntry driveRotMult = tab2.add("Rotation Factor", RobotNumbers.turnScale).getEntry();
     private DoubleSolenoid solenoidShifterL, solenoidShifterR;
 
     public Driver(){
@@ -242,7 +243,7 @@ public class Driver{
      * Drive based on FPS and omega(speed of rotation in rad/sec)
      */
     private void drivePure(double FPS, double omega){
-        omega *= RobotNumbers.turnScale;
+        omega *= driveRotMult.getDouble(RobotNumbers.turnScale);
         currentOmega = omega;
         var chassisSpeeds = new ChassisSpeeds(Units.feetToMeters(FPS), 0, omega);
         DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(chassisSpeeds);
@@ -444,18 +445,22 @@ public class Driver{
     private NetworkTableEntry x = tab.add("x position", 0).getEntry();
     private NetworkTableEntry y = tab.add("y position", 0).getEntry();
 
+    public boolean setup = false;
     /**
      * set stuff up for auto
      */
     public void setupAuto(){
-        headingPID = new PIDController(RobotNumbers.headingP, RobotNumbers.headingI, RobotNumbers.headingD);
-        odometer = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
-        initLogger();
-        resetPigeon();
-        leaderL.getEncoder().setPosition(0);
-        leaderR.getEncoder().setPosition(0);
-        //headingPID.enableContinuousInput(0, 360);
-        //arrayAutoStage = 0;
+        if(!setup){
+            headingPID = new PIDController(RobotNumbers.headingP, RobotNumbers.headingI, RobotNumbers.headingD);
+            odometer = new DifferentialDriveOdometry(Rotation2d.fromDegrees(yawAbs()), new Pose2d(0, 0, new Rotation2d()));
+            initLogger();
+            resetPigeon();
+            leaderL.getEncoder().setPosition(0);
+            leaderR.getEncoder().setPosition(0);
+            //headingPID.enableContinuousInput(0, 360);
+            //arrayAutoStage = 0;
+            setup = true;
+        }
     }
 
     private void put(String name, double num){

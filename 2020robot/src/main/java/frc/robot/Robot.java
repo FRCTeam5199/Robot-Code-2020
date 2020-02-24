@@ -55,6 +55,9 @@ public class Robot extends TimedRobot {
     chooser.addOption("Drive+Aim+Shoot Rightmost", Autos.runAimShootAutoRightmost);
     chooser.addOption("Spinup Only", Autos.spinupOnlyAuto);
     chooser.addOption("Drive+Aim+Shoot Rightmost goto Trench", Autos.runAimShootTrenchAutoRightmost);
+    chooser.addOption("Intake and Move", Autos.intakeOnlyAuto);
+    chooser.addOption("Intake, Move, Target", Autos.intakeTargetOnlyAuto);
+    chooser.addOption("Intake 2 and Shoot", Autos.intakeSpinupTargetShootAuto);
     SmartDashboard.putData("Auto choices", chooser);
 
     driver = new Driver();
@@ -106,12 +109,8 @@ public class Robot extends TimedRobot {
     //pdp.initLogger();
     //hopper.setupSensor();
     selectedAuto = chooser.getSelected();
-    driver.setupAuto();
+    setStuffUp();
     autoStage = 0;
-    turret.resetEncoderAndGyro();
-    turret.resetPigeon();
-    turret.setBrake(true);
-    turret.track = false;
   }
 
   /**
@@ -119,15 +118,34 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
+    SmartDashboard.putNumber("Auton Stage", autoStage);
     updateAuto(selectedAuto);
+  }
+
+  private boolean setupDone = false;
+  private void setStuffUp(){
+    if(!setupDone){
+      driver.setupAuto();
+      turret.resetEncoderAndGyro();
+      turret.resetPigeon();
+      turret.setBrake(true);
+      turret.track = false;
+      baller.hopper.indexSensor.setAutomaticMode(true);
+      baller.hopper.indexSensor.setRangeProfile(RangeProfile.kHighSpeed);
+      baller.hopper.indexSensor.setEnabled(true);
+      turret.chasingTarget = false;
+      setupDone = true;
+    }
   }
 
   @Override
   public void teleopInit() {
-    testInit();
+    setStuffUp();
+    //testInit();
     //driver.stopMotors();
     //shooter.initLogger();
     //pdp.initLogger();
+    
   }
 
   /**
@@ -135,7 +153,13 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    testPeriodic();
+    driver.updateTeleop(); //USE FOR PRACTICE
+    baller.update(); //USE
+    climber.update();
+    //turret.setDriveOmega(driver.omega());
+    turret.track = !baller.shooting;
+    turret.update();
+    SmartDashboard.putNumber("drive omega", driver.omega());
   }
 
   @Override
@@ -162,22 +186,26 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     driver.updateTest();
     //driver.updateTeleop(); //USE FOR PRACTICE
-    //baller.update(); //USE
-    //climber.update();
+    baller.update(); //USE
+    climber.update();
     //turret.setDriveOmega(driver.omega());
     turret.track = !baller.shooting;
-    //turret.update();
+    turret.update();
     SmartDashboard.putNumber("drive omega", driver.omega());
   }
 
   @Override
   public void disabledInit() {
+    autoStage = 0;
+    driver.setup = false;
+    setupDone = false;
     turret.setBrake(false);
     driver.unlockWheels();
     baller.hopper.indexSensor.setEnabled(false);
     //baller.closeLoggers();
     pdp.closeLogger();
     driver.closeLogger();
+    baller.stopFiring();
   }
 
   public void updateAuto(double[][] auto){
@@ -191,6 +219,7 @@ public class Robot extends TimedRobot {
     else{
       if(performSpecialAction(auto[autoStage][3])){autoStage++;}
     }
+    baller.updateMechanisms();
   }
 
   public boolean performSpecialAction(double actionToPerform){
@@ -214,6 +243,12 @@ public class Robot extends TimedRobot {
         break;
       case(5):
         complete = specialActionSpinUpShooter();
+        break;
+      case(6):
+        complete = specialActionEnableIntake();
+        break;
+      case(7):
+        complete = specialActionDisableIntake();
         break;
     }
     return complete;
@@ -262,5 +297,15 @@ public class Robot extends TimedRobot {
     baller.fireThreeBalls();
     //baller.update();
     return baller.allBallsFired;
+  }
+
+  private boolean specialActionEnableIntake(){
+    baller.setIntakeState(true);
+    return true;
+  }
+
+  private boolean specialActionDisableIntake(){
+    baller.setIntakeState(false);
+    return true;
   }
 }

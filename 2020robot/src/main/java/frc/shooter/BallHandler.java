@@ -88,7 +88,7 @@ public class BallHandler{
     public void fireHighAccuracy(){
         boolean visOverride = hopper.visionOverride.getBoolean(false);
         boolean spinOverride = hopper.spinupOverride.getBoolean(false);
-        boolean runDisable = hopper.disableOverride.getBoolean(false);
+        boolean runDisable = false;//hopper.disableOverride.getBoolean(false);
         shooter.toggle(true);
         hopper.setAgitator((shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
         hopper.setIndexer((shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
@@ -135,7 +135,7 @@ public class BallHandler{
             System.out.println("Stopping Timer");
             //shooterTimer.reset();
         }
-        if((shooter.actualRPM>shooter.speed-50)&&shooterTimer.get()>1.2){
+        if((shooter.actualRPM>shooter.speed-50)&&shooterTimer.get()>1.8){
             stopFiring();
             shooterTimer.stop();
             allBallsFired = true;
@@ -144,5 +144,13 @@ public class BallHandler{
 
         System.out.println(shooterTimer.get()+" "+(shooter.actualRPM>shooter.speed-50));
         updateMechanisms();
+    }
+
+    public boolean setIntakeState(boolean intakeState){
+        int intakeRun = 0;
+        if(intakeState){intakeRun = 1;}
+        intake.setIntake(intakeRun);
+        updateMechanisms();
+        return true;
     }
 }

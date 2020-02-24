@@ -114,7 +114,7 @@ public class Turret{
         if 270>position>0 then offset WHATEVER speed it is turning at by -driveOmega to counterrotate
         */
         double omegaSetpoint;
-        if(270>turretDegrees() && turretDegrees()>0){
+        if(271>turretDegrees() && turretDegrees()>-1){
             omegaSetpoint = 0;
             //omegaSetpoint += -driveOmega*arbDriveMult.getDouble(-0.28);
             if(joy.getButton(2)){
@@ -144,7 +144,7 @@ public class Turret{
         }
         else{//target good
             SmartDashboard.putString("mode", "Facing Target");
-            omegaSetpoint += positionControl.calculate(-chameleon.getGoalAngle(), -1.8);
+            omegaSetpoint += positionControl.calculate(-chameleon.getGoalAngle(), -2.9);
         }
 
         //omegaSetpoint += positionControl.calculate(turretDegrees(), targetPosition);
@@ -161,7 +161,7 @@ public class Turret{
         if(safe){
             if(/*spinButton.getBoolean(false)&&*/track){
                 rotateTurret(omegaSetpoint);
-                //System.out.println("Attempting to rotate the POS");
+                System.out.println("Attempting to rotate the POS");
             }
             else{
                 rotateTurret(0);
