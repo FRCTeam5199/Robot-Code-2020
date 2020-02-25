@@ -562,6 +562,57 @@ public class Driver{
     }
 
     /**
+     * "Attack"(drive towards) a point on the field but in reverse. Units are in meters. 
+     * Gotta drive backwards for that sweet sweet 10 ball auto.
+     * Why rebuild the entire auto to run backwards when you can just drive backwards and point away from the target?
+     * @param targetX - x position of the waypoint in meters
+     * @param targetY - y position of the waypoint in meters
+     * @return Boolean representing whether the robot is within tolerance of the waypoint or not.
+     */
+    public boolean attackPointReverse(double targetX, double targetY, double speed){
+        double xDiff = targetX-fieldX();
+        double yDiff = targetY-fieldY();
+        //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
+        //wait is this just pure pursuit made by an idiot?
+        double rotationOffset = headingPID.calculate(headingErrorWraparound(-targetX+2*fieldX(), -targetY+2*fieldY()), 0);
+        boolean xInTolerance = Math.abs(xDiff) < RobotNumbers.autoTolerance;
+        boolean yInTolerance = Math.abs(yDiff) < RobotNumbers.autoTolerance;
+        boolean inTolerance = yInTolerance && xInTolerance;
+        if(!inTolerance){
+            drive(-RobotNumbers.autoSpeed*speed, rotationOffset*RobotNumbers.autoRotationMultiplier);
+            // leaderL.set(0);
+            // leaderR.set(0);
+        }
+        else{
+            drive(0,0);
+            // leaderL.set(0);
+            // leaderR.set(0);
+        }
+        // put("x", fieldX());
+        // put("y", fieldY());
+        // put("head", fieldHeading());
+        // put("angleTo", angleToPos(x.getDouble(0), y.getDouble(0)));
+        // // put("error", headingError(x.getDouble(0), y.getDouble(0)));
+        // put("wrap", headingErrorWraparound(x.getDouble(0), y.getDouble(0)));
+        // put("rotationOffset", rotationOffset);
+        // SmartDashboard.putNumber("xDiff", xDiff);
+        // SmartDashboard.putNumber("yDiff", yDiff);
+        // SmartDashboard.putNumber("xpos", robotTranslation.getY());
+        // SmartDashboard.putNumber("ypos", -robotTranslation.getX());
+        // SmartDashboard.putNumber("angleTarget", angleTarget);
+        // SmartDashboard.putNumber("heading", yawWraparound());
+        // SmartDashboard.putNumber("abs", yawAbs());
+        // SmartDashboard.putNumber("rotationOffset", -rotationOffset*RobotNumbers.autoRotationMultiplier); //number being fed into drive()
+        // SmartDashboard.putNumber("rotationDifference", -(angleTarget-yawWraparound()));
+        // SmartDashboard.putBoolean("inTolerance", inTolerance);
+        // SmartDashboard.putNumber("left", getMetersLeft());
+        // SmartDashboard.putNumber("right", getMetersRight());
+        return inTolerance;
+    }
+    
+
+
+    /**
      * arc follower code(bad, don't use)
      */
     public boolean driveSidesToPos(double leftFeet, double rightFeet){

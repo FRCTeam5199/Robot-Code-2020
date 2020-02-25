@@ -235,20 +235,29 @@ public class Robot extends TimedRobot {
       case(2): //action 2 is to shoot all the balls in the hopper
         complete = specialActionFireAll();
         break;
-      case(3):
+      case(3): //action 3 is to setup shooter to shoot
         complete = specialActionSetupShooter();
         break;
-      case(4):
+      case(4): //action 4 is to disable turret motion
         complete = specialActionDisableTurret();
         break;
-      case(5):
+      case(5): //action 5 is to spinup shooter
         complete = specialActionSpinUpShooter();
         break;
-      case(6):
+      case(6): //action 6 is to turn on the intake
         complete = specialActionEnableIntake();
         break;
-      case(7):
+      case(7): //action 7 is to turn off the intake
         complete = specialActionDisableIntake();
+        break;
+      case(8): //action 8 is to deploy the intake(with the pneumatics)
+        complete = specialActionDeployIntake();
+        break;
+      case(9): //action 9 is to retract the intake
+        complete = specialActionRetractIntake();
+        break;
+      case(10): //action 10 is to snap the turret back to home
+        complete = specialActionAimTurret(260);
         break;
     }
     return complete;
@@ -306,6 +315,16 @@ public class Robot extends TimedRobot {
 
   private boolean specialActionDisableIntake(){
     baller.setIntakeState(false);
+    return true;
+  }
+
+  private boolean specialActionDeployIntake(){
+    baller.intake.setDeploy(true);
+    return true;
+  }
+
+  private boolean specialActionRetractIntake(){
+    baller.intake.setDeploy(false);
     return true;
   }
 }

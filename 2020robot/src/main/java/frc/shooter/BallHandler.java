@@ -7,7 +7,7 @@ import frc.shooter.*;
 public class BallHandler{
     public Shooter shooter;
     public Hopper hopper;
-    private Intake intake;
+    public Intake intake;
     private JoystickController joy;
     public boolean shooting;
 
