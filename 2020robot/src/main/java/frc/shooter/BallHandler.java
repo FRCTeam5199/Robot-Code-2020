@@ -3,27 +3,39 @@ package frc.shooter;
 import edu.wpi.first.wpilibj.Timer;
 import frc.controllers.*;
 import frc.shooter.*;
+import frc.leds.ShooterLEDs;
 
 public class BallHandler{
+    //private ShooterLEDs leds;
     public Shooter shooter;
     public Hopper hopper;
     public Intake intake;
     private JoystickController joy;
     public boolean shooting;
+    public boolean indexing;
+
+    //private XBoxController xbox;
 
     public void init(){
         joy = new JoystickController(1);
+        //xbox = new XBoxController(0);
         shooter = new Shooter();
         hopper = new Hopper();
         intake = new Intake();
         shooter.init();
         hopper.init();
         intake.init();
+        indexing = false;
+        //leds = new ShooterLEDs();
+        //leds.init();
     }
     /**
      * Update all the mechanisms being handled by the BallHandler.
      */
     public void update(){
+        // if(xbox.getButtonDown(1)){
+        //     leds.startShootCycle();
+        // }
         if(joy.getButtonDown(6)){
             intake.setDeploy(true);
         }
@@ -63,6 +75,7 @@ public class BallHandler{
             hopper.setAgitator(joy.getButton(10));
             hopper.setIndexer(joy.getButton(12));
         }
+        indexing = (shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable;
         updateMechanisms();
     }
 
@@ -70,6 +83,7 @@ public class BallHandler{
         shooter.update();
         intake.update();
         hopper.update();
+        //leds.update();
     }
 
     public void closeLoggers(){

@@ -27,6 +27,7 @@ public class Climber{
 
     private ShuffleboardTab tab = Shuffleboard.getTab("climber");
     private NetworkTableEntry speedEntry = tab.add("Climber Speed", 0.25).getEntry();
+    private Timer climberTimer;
 
     /**
      * Update the Climber object(run every tick)
@@ -44,13 +45,26 @@ public class Climber{
         //     drive(0);
         // }
         if(joy.getButton(9)){
-            drive(-speedEntry.getDouble(0.25));
+            drive(0.55);
         }
         else if(joy.getButton(7)){
-            drive(speedEntry.getDouble(0.25));
+            drive(0.25);
         }
         else{
             drive(0);
+        }
+        //check if lock button is pressed, if it is lock the climber
+        //start a timer when the button goes down, stop when it goes up, check time, reset, if time > 1s and button still down unlock climber
+        if(false/*button pressed*/){
+            //lock climber
+            climberTimer.start();
+        }
+        if(false/*button unpressed*/){
+            climberTimer.stop();
+            if(climberTimer.get()>1.5){
+                //unlock climber
+            }
+            climberTimer.reset();
         }
     }
 
@@ -73,5 +87,8 @@ public class Climber{
         joy = new JoystickController(1);
         motorA.setNeutralMode(NeutralMode.Brake);
         motorB.setNeutralMode(NeutralMode.Brake);
+        climberTimer = new Timer();
+        climberTimer.stop();
+        climberTimer.reset();
     }
 }

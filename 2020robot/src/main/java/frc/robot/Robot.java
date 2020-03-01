@@ -157,7 +157,7 @@ public class Robot extends TimedRobot {
     baller.update(); //USE
     climber.update();
     //turret.setDriveOmega(driver.omega());
-    turret.track = !baller.shooting;
+    turret.track = !baller.indexing;
     turret.update();
     SmartDashboard.putNumber("drive omega", driver.omega());
   }

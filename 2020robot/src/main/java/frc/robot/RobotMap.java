@@ -31,5 +31,11 @@ public class RobotMap{
     public static final int pigeon = 22; //pigeon
     public static final int pcm = 23; //pcm
 
+    //pneumatics
+    public static final int intakeOut = 4;
+    public static final int intakeIn = 5;
+    public static final int buddyUnlock = 0;
+    public static final int shifters = 6;
+
     
 }

@@ -2,7 +2,7 @@ package frc.drive;
 
 public class Autos{
     //[row(stage)][column(data, 0 for x, 1 for y, 2 for speed, 3 for special move #)]
-    //special move - -1 for none(just drive), 0-whatever for whichever action to do, -2 for terminate
+    //special move - -1 for none(just drive), -3 for reverse drive, 0-whatever for whichever action to do, -2 for terminate
     public static final double[][] testAuto = {
         //{row#c0, row#c1, row#c2, row#c3},
         {1,2, 1, -1}, //x, y, speed, special move //r0

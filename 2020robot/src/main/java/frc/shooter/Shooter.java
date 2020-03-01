@@ -22,13 +22,14 @@ import frc.robot.RobotToggles;
 import frc.util.Logger;
 //import frc.util.Permalogger;
 import frc.vision.GoalChameleon;
+import frc.leds.ShooterLEDs;
 
 public class Shooter{
-    private final CANSparkMax leader, follower;
+    private CANSparkMax leader, follower;
     private CANPIDController speedo;
     private CANEncoder encoder;
     private XBoxController xbox;
-    private boolean enabled = true;
+    private boolean enabled = true; 
 
     private Timer timer = new Timer();
     private Logger logger = new Logger("shooter");

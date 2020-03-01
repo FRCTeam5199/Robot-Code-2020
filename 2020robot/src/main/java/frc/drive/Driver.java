@@ -18,6 +18,7 @@ import com.revrobotics.ControlType;
 import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.controller.PIDController;
 
@@ -88,7 +89,8 @@ public class Driver{
     private NetworkTableEntry driveI = tab2.add("I", RobotNumbers.drivebaseI).getEntry();
     private NetworkTableEntry driveD = tab2.add("D", RobotNumbers.drivebaseD).getEntry();
     private NetworkTableEntry driveRotMult = tab2.add("Rotation Factor", RobotNumbers.turnScale).getEntry();
-    private DoubleSolenoid solenoidShifterL, solenoidShifterR;
+    //private DoubleSolenoid solenoidShifterL, solenoidShifterR;
+    private Solenoid shifter; 
 
     public Driver(){
         
@@ -108,8 +110,7 @@ public class Driver{
         followerR2 = new CANSparkMax(RobotMap.driveFollowerR2, MotorType.kBrushless);
         leftPID = leaderL.getPIDController();
         rightPID = leaderR.getPIDController();
-        solenoidShifterL = new DoubleSolenoid(23, 3, 2);
-        solenoidShifterR = new DoubleSolenoid(23, 7, 6);
+        shifter = new Solenoid(RobotMap.pcm, RobotMap.shifters);
         chameleon.init();
         followerL1.follow(leaderL);
         followerR1.follow(leaderR);
@@ -261,14 +262,7 @@ public class Driver{
      * @param shifted whether or not the transmissions are to be shifted to low gear
      */
     private void setLowGear(boolean shifted){
-        if(!shifted){
-            solenoidShifterR.set(Value.kForward);
-            solenoidShifterL.set(Value.kForward);
-        }
-        if(shifted){
-            solenoidShifterR.set(Value.kReverse);
-            solenoidShifterL.set(Value.kReverse);
-        }
+        shifter.set(!shifted);
     }
 
     /**

@@ -116,7 +116,7 @@ public class Turret{
         double omegaSetpoint;
         if(271>turretDegrees() && turretDegrees()>-1){
             omegaSetpoint = 0;
-            //omegaSetpoint += -driveOmega*arbDriveMult.getDouble(-0.28);
+            omegaSetpoint += -driveOmega*arbDriveMult.getDouble(-0.28);
             if(joy.getButton(2)){
                 omegaSetpoint += joy.getXAxis();
             }
@@ -137,7 +137,7 @@ public class Turret{
             // omegaSetpoint = scanDirection;
             if(chasingTarget){
                 //System.out.println(chasingTarget);
-                omegaSetpoint = positionControl.calculate(turretDegrees(), targetAngle);
+                //omegaSetpoint = positionControl.calculate(turretDegrees(), targetAngle);
             }
             //scan();
             //omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(235+yawWrap()-360));
@@ -161,7 +161,7 @@ public class Turret{
         if(safe){
             if(/*spinButton.getBoolean(false)&&*/track){
                 rotateTurret(omegaSetpoint);
-                System.out.println("Attempting to rotate the POS");
+                System.out.println("Attempting to rotate the POS at" + omegaSetpoint);
             }
             else{
                 rotateTurret(0);
@@ -179,6 +179,10 @@ public class Turret{
             }
         }
 
+        if(!track){
+            rotateTurret(0);
+        }
+
         //setF(1);
         SmartDashboard.putNumber("Turret DB Omega offset", -driveOmega*arbDriveMult.getDouble(-0.28));
         SmartDashboard.putNumber("Turret Omega", omegaSetpoint);
@@ -190,6 +194,8 @@ public class Turret{
         SmartDashboard.putNumber("YawWrap", yawWrap()-360);
         SmartDashboard.putBoolean("Turret At Target", atTarget);
         //chasingTarget = false;
+        SmartDashboard.putNumber("Turret Heading from North", fieldHeading());
+        SmartDashboard.putBoolean("Turret Track", track);
     }
 
     public boolean setTargetAngle(double target){
@@ -229,12 +235,21 @@ public class Turret{
         encoder.setPositionConversionFactor(360/(turretSprocketSize*versaRatio));
         controller = motor.getPIDController();
         positionControl = new PIDController(0, 0, 0);
+        motor.setInverted(false);
         encoder.setPosition(270);
         //controller.setReference(0, ControlType.kPosition);
         setMotorPID(0.5, 0, 0);
         setPosPID(0.02, 0, 0);
         motor.setIdleMode(IdleMode.kBrake);
         chameleon.init();
+        setBrake(true);
+    }
+
+    /**
+     * @return the turret's heading in relation to the field
+     */
+    public double fieldHeading(){
+        return yawWrap()-turretDegrees();
     }
 
     public void resetEncoderAndGyro(){
@@ -307,6 +322,7 @@ public class Turret{
         }
         else{
             deadbandComp = 0;
+            motorRPM = 0;
         }
         motor.set(motorRPM/5700-deadbandComp);
         SmartDashboard.putNumber("Motor RPM out", motorRPM);
@@ -340,7 +356,7 @@ public class Turret{
     public void resetPigeon(){
         updatePigeon();
         startypr = ypr;
-        startYaw = yawAbs();
+        startYaw = yawAbs()-90;
     }
     //absolute ypr -----------------------------------------------------------------------------------------------------------------
     public double yawAbs(){ //return absolute yaw of pigeon
@@ -349,7 +365,7 @@ public class Turret{
     }
     //relative ypr ----------------------------------------------------------------------------------------------------------------
     public double yawRel(){ //return relative(to start) yaw of pigeon
-        updatePigeon();
+        updatePigeon(); 
         return (ypr[0]-startYaw);
     }
     public double yawWrap(){

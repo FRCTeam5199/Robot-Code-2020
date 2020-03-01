@@ -99,7 +99,7 @@ public class Hopper{
 
         if(indexerSensorRange()>4){
             indexer.set(ControlMode.PercentOutput, 0.25);
-            agitator.set(ControlMode.PercentOutput, 0.4);
+            agitator.set(ControlMode.PercentOutput, -0.4);
             indexerOverride = true;
         }
         if(indexerSensorRange()<4){
@@ -109,13 +109,13 @@ public class Hopper{
         }
 
         if(indexerActive){
-            indexer.set(ControlMode.PercentOutput, .65);
+            indexer.set(ControlMode.PercentOutput, 0.65);
         }
         else if(!indexerOverride){
             indexer.set(ControlMode.PercentOutput, 0);
         }
         if(agitatorActive){
-            agitator.set(ControlMode.PercentOutput, .65);
+            agitator.set(ControlMode.PercentOutput, -0.65);
         }
         else if(!indexerOverride){
             agitator.set(ControlMode.PercentOutput, 0);
