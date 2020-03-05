@@ -16,6 +16,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Units;
+import frc.controllers.JoystickController;
 import frc.controllers.XBoxController;
 import frc.robot.RobotMap;
 import frc.robot.RobotNumbers;
@@ -31,6 +32,7 @@ public class Shooter{
     private CANEncoder encoder;
     private XBoxController xbox;
     private boolean enabled = true; 
+    private JoystickController joy;
 
     private Timer timer = new Timer();
     private Logger logger = new Logger("shooter");
@@ -79,6 +81,7 @@ public class Shooter{
     public double actualRPM;
 
     private GoalChameleon chameleon;
+    private double lastSpeed;
 
     public Shooter(){
         leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
@@ -98,7 +101,7 @@ public class Shooter{
     public void update(){
         actualRPM = leader.getEncoder().getVelocity();
         checkState();
-        speed = shooterSpeed.getDouble(0);
+        //speed = shooterSpeed.getDouble(0);
         //put code here to set speed based on distance to goal
         double closeDist = 3; //close zone low end distance
         double closeSpeed = closeSpeedEntry.getDouble(3000); //close zone speed
@@ -107,28 +110,37 @@ public class Shooter{
         double farthestDist = 6; //farthest zone low end distance
         double farthestSpeed = farthestSpeedEntry.getDouble(4700); //farthest zone speed
 
-        if(chameleon.getGoalDistance()>closeDist && chameleon.getGoalDistance()<farDist){//close zone
-            SmartDashboard.putString("ZONE", "close");
-            speed = closeSpeed;
-        }
-        else if(chameleon.getGoalDistance()>farDist && chameleon.getGoalDistance()<farthestDist){ //far zone
-            SmartDashboard.putString("ZONE", "far");
-            speed = farSpeed;
-        }
-        else if(chameleon.getGoalDistance()>farthestDist){ //farthest zone
-            SmartDashboard.putString("ZONE", "farthest");
-            speed = farthestSpeed;
-        }
-        else{
-            SmartDashboard.putString("ZONE", "screwed up?");
-        }
+        // if(chameleon.getGoalDistance()>closeDist && chameleon.getGoalDistance()<farDist){//close zone
+        //     SmartDashboard.putString("ZONE", "close");
+        //     speed = closeSpeed;
+        // }
+        // else if(chameleon.getGoalDistance()>farDist && chameleon.getGoalDistance()<farthestDist){ //far zone
+        //     SmartDashboard.putString("ZONE", "far");
+        //     speed = farSpeed;
+        // }
+        // else if(chameleon.getGoalDistance()>farthestDist){ //farthest zone
+        //     SmartDashboard.putString("ZONE", "farthest");
+        //     speed = farthestSpeed;
+        // }
+        // else{
+        //     SmartDashboard.putString("ZONE", "screwed up?");
+        // }
 
-        if(manualSpeedOverride.getBoolean(false)){
-            speed = shooterSpeed.getDouble(0);
-        }
+        // if(manualSpeedOverride.getBoolean(false)){
+        //     speed = shooterSpeed.getDouble(0);
+        // }
 
         //speed = 4040; //set in stone speed
-        speed = interpolateSpeed();
+        if(!joy.getButton(1)){
+            speed = interpolateSpeed();
+            lastSpeed = speed;
+        }
+        else{
+            speed = lastSpeed;
+        }
+        // if(!joy.getButton(1)){
+        //     speed = interpolateSpeed();
+        // }
 
         double rate = rampRate.getDouble(40);
         //boolean toggle = shooterToggle.getBoolean(false);
@@ -327,6 +339,7 @@ public class Shooter{
 
         chameleon.init();
         SmartDashboard.putString("ZONE", "none");
+        joy = new JoystickController(1);
     }
 
     /**

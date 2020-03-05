@@ -52,10 +52,10 @@ public class Climber{
         //     drive(0);
         // }
         if(panel.getButton(1)){
-            drive(1);
+            drive(0.7);
         }
         else if(panel.getButton(2)){
-            drive(-1);
+            drive(-0.7);
         }
         else{
             drive(0);
@@ -91,6 +91,7 @@ public class Climber{
      * @param speed - motor speed on a -1 to 1 scale
      */
     private void drive(double speed){
+        motorA.set(ControlMode.PercentOutput, speed);
         motorB.set(ControlMode.PercentOutput, -speed);
     }
 
@@ -113,7 +114,7 @@ public class Climber{
         climberLock = new DoubleSolenoid(RobotMap.pcm, RobotMap.climberLockIn, RobotMap.climberLockOut);
         buddyLock = new Solenoid(RobotMap.pcm, RobotMap.buddyUnlock);
         climberLock.set(Value.kReverse);
-        motorA.set(ControlMode.Follower, RobotMap.climberB);
+        //motorA.set(ControlMode.Follower, RobotMap.climberB);
         buddyLock.set(false);
         climberLock.set(Value.kForward);
     }
