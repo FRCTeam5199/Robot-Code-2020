@@ -50,14 +50,17 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     chooser.setDefaultOption("Default Auto", Autos.defaultAuto);
     //chooser.addOption("Auto 1", Autos.auto1);      
-    chooser.addOption("Aim Only", Autos.aimOnlyAuto);
-    chooser.addOption("Aim+Shoot", Autos.shootOnlyAuto);
-    chooser.addOption("Drive+Aim+Shoot Rightmost", Autos.runAimShootAutoRightmost);
-    chooser.addOption("Spinup Only", Autos.spinupOnlyAuto);
-    chooser.addOption("Drive+Aim+Shoot Rightmost goto Trench", Autos.runAimShootTrenchAutoRightmost);
-    chooser.addOption("Intake and Move", Autos.intakeOnlyAuto);
-    chooser.addOption("Intake, Move, Target", Autos.intakeTargetOnlyAuto);
+    // chooser.addOption("Aim Only", Autos.aimOnlyAuto);
+    // chooser.addOption("Aim+Shoot", Autos.shootOnlyAuto);
+    // chooser.addOption("Drive+Aim+Shoot Rightmost", Autos.runAimShootAutoRightmost);
+    // chooser.addOption("Spinup Only", Autos.spinupOnlyAuto);
+    // chooser.addOption("Drive+Aim+Shoot Rightmost goto Trench", Autos.runAimShootTrenchAutoRightmost);
+    //chooser.addOption("Intake and Move", Autos.intakeOnlyAuto);
+    // chooser.addOption("Intake, Move, Target", Autos.intakeTargetOnlyAuto);
     chooser.addOption("Intake 2 and Shoot", Autos.intakeSpinupTargetShootAuto);
+    chooser.addOption("Drive Forward Then Back", Autos.driveForwardThenReverse);
+    chooser.addOption("(Right) Rendezvous + Trench", Autos.driveToRendezvousThenBackThenToTrench);
+    chooser.addOption("(Left) Steal Two, Shoot", Autos.stealTwoAuto);
     SmartDashboard.putData("Auto choices", chooser);
 
     driver = new Driver();
@@ -206,12 +209,16 @@ public class Robot extends TimedRobot {
     pdp.closeLogger();
     driver.closeLogger();
     baller.stopFiring();
+    climber.buddyLock.set(false);
   }
 
   public void updateAuto(double[][] auto){
     driver.updateGeneric();
     if(auto[autoStage][3]==-1){
       if(driver.attackPoint(auto[autoStage][0], auto[autoStage][1], auto[autoStage][2])){autoStage++;}
+    }
+    else if(auto[autoStage][3]==-3){
+      if(driver.attackPointReverse(auto[autoStage][0], auto[autoStage][1], auto[autoStage][2])){autoStage++;}
     }
     else if(auto[autoStage][3]==-2){
       //do nothing and don't advance the auton stage, as -2 signifies the end of the auton.
@@ -230,7 +237,7 @@ public class Robot extends TimedRobot {
         complete = specialAction0();
         break;
       case(1): //action 1 is to aim the turret to 135
-        complete = specialActionAimTurret(100);
+        complete = specialActionAimTurret(110);
         break;
       case(2): //action 2 is to shoot all the balls in the hopper
         complete = specialActionFireAll();
@@ -302,19 +309,19 @@ public class Robot extends TimedRobot {
   }
   private boolean specialActionFireAll(){
     cycles++;
-    SmartDashboard.putString("Auto Mode", "Shooting Balls for "+cycles+" cycles");
     baller.fireThreeBalls();
+    SmartDashboard.putString("Auto Mode", "Shooting Balls for "+cycles+" cycles, "+baller.allBallsFired);
     //baller.update();
     return baller.allBallsFired;
   }
 
   private boolean specialActionEnableIntake(){
-    baller.setIntakeState(true);
+    baller.intake.setIntake(1);
     return true;
   }
 
   private boolean specialActionDisableIntake(){
-    baller.setIntakeState(false);
+    baller.intake.setIntake(0);
     return true;
   }
 

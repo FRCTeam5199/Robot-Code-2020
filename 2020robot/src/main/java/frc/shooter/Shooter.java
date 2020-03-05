@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.shuffleboard.*;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.networktables.*;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -126,7 +127,8 @@ public class Shooter{
             speed = shooterSpeed.getDouble(0);
         }
 
-        speed = 4040; //set in stone speed
+        //speed = 4040; //set in stone speed
+        speed = interpolateSpeed();
 
         double rate = rampRate.getDouble(40);
         //boolean toggle = shooterToggle.getBoolean(false);
@@ -146,7 +148,7 @@ public class Shooter{
         P = 0.00035;
         I = 0;
         D = 0;
-        F = 0.000176; //shooterF.getDouble(0.000185);
+        F = 0.000185;//shooterF.getDouble(0.000185);
         
 
         //3.00E-04	1.00E-07	0.07 (tentative values, not perfect yet)
@@ -163,6 +165,7 @@ public class Shooter{
         //if(enabled){
             //leader.set(0.05);
         //toggle(toggle);
+        //enabled = true; //REMOVE IF RUNNING THE SHOOTER ALL THE TIME IS BAD
         if(enabled){
             //poweredState = true;
             if(RobotToggles.shooterPID){
@@ -193,6 +196,11 @@ public class Shooter{
         SmartDashboard.putNumber("I accumulator", speedo.getIAccum());
         SmartDashboard.putBoolean("RecMode", recoveryPID);
 
+        SmartDashboard.putNumber("Target Size", chameleon.getGoalSize());
+        SmartDashboard.putNumber("Calculated Shooter Speed", interpolateSpeed());
+        SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
+        SmartDashboard.putNumber("Interpolated Speed", interpolateSpeed());
+
         
         
         // if(poweredState == true){
@@ -211,6 +219,10 @@ public class Shooter{
         SmartDashboard.putBoolean("shooter enable", enabled);
     }
 
+    public void spinUp(){
+        setSpeed(speed);
+    }
+
     /**
      * Get motor speed based 
      * @param distance
@@ -227,6 +239,10 @@ public class Shooter{
 
     public boolean validTarget(){
         return chameleon.validTarget();
+    }
+
+    public boolean atSpeed(){
+        return leader.getEncoder().getVelocity()>speed-80;
     }
 
     private void checkState(){
@@ -361,5 +377,41 @@ public class Shooter{
             chameleon.getGoalDistance()
         };
         logger.writeData(data);
+    }
+
+    private double[][] sizeSpeedsArray = {
+        {0, 0},
+        {45,4100},
+        {55, 4150},
+        {65, 4170},
+        {75, 4150},
+        {85, 4500},
+    };
+
+    private double speedMult = 0.96;
+    private double interpolateSpeed(){
+        double size = chameleon.getGoalSize();
+        int index = 0;
+        for(int i = 0; i<sizeSpeedsArray.length ; i++){
+            if(size>sizeSpeedsArray[i][0]){
+                index = i;
+            }
+        }
+        //now index is the index of the low end, index+1 = high end
+        if(index+1>=sizeSpeedsArray.length){
+            return sizeSpeedsArray[sizeSpeedsArray.length-1][1];
+        }
+        double sizeGap = sizeSpeedsArray[index][0]-sizeSpeedsArray[index+1][0];
+        double gapFromLowEnd = size-sizeSpeedsArray[index][0];
+        double portionOfGap = gapFromLowEnd/sizeGap;
+
+        double speedGap = sizeSpeedsArray[index][1]-sizeSpeedsArray[index+1][1];
+        double outSpeed = sizeSpeedsArray[index][1] + speedGap*portionOfGap; //low end + gap * portion
+        return outSpeed*speedMult;
+    }
+    
+    private double interpolateFF(){
+        double voltage = RobotController.getBatteryVoltage();
+        return 0;
     }
 }

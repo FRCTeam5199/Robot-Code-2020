@@ -19,9 +19,10 @@ public class RobotNumbers{
     public static final double driveScale = 1;
     public static final double turnScale = 0.7;
 
-    public static final double drivebaseP = 2.7e-5;
+    public static final double drivebaseP = 0;
     public static final double drivebaseI = 0;
-    public static final double drivebaseD = 25e-4;
+    public static final double drivebaseD = 0.000005;
+    public static final double drivebaseF = 0.000001;
 
     public static final double headingP = 0.05;
     public static final double headingI = 0;

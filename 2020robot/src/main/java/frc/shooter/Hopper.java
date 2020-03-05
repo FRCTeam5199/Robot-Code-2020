@@ -47,6 +47,7 @@ public class Hopper{
     public NetworkTableEntry disableOverride = tab.add("LOADING DISABLE", false).getEntry();
 
     public boolean autoIndex = true;
+    private boolean isReversed = false;
 
 
     public void init(){
@@ -91,18 +92,22 @@ public class Hopper{
         indexerActive = set;
     }
 
+    public void setReverse(boolean reverse){
+        isReversed = reverse;
+    }
+
     public void update(){
         SmartDashboard.putBoolean("indexer enable", indexerActive);
         SmartDashboard.putBoolean("agitator enable", agitatorActive);
         SmartDashboard.putNumber("indexer sensor", indexerSensorRange());
         boolean indexerOverride = false;
 
-        if(indexerSensorRange()>4){
+        if(indexerSensorRange()>5){
             indexer.set(ControlMode.PercentOutput, 0.25);
-            agitator.set(ControlMode.PercentOutput, -0.4);
+            agitator.set(ControlMode.PercentOutput, -0.2);
             indexerOverride = true;
         }
-        if(indexerSensorRange()<4){
+        if(indexerSensorRange()<5){
             indexer.set(ControlMode.PercentOutput, 0);
             agitator.set(ControlMode.PercentOutput, 0);
             indexerOverride = false;
@@ -115,12 +120,16 @@ public class Hopper{
             indexer.set(ControlMode.PercentOutput, 0);
         }
         if(agitatorActive){
-            agitator.set(ControlMode.PercentOutput, -0.65);
+            agitator.set(ControlMode.PercentOutput, -0.6);
         }
         else if(!indexerOverride){
             agitator.set(ControlMode.PercentOutput, 0);
         }
 
+        if(isReversed){
+            agitator.set(ControlMode.PercentOutput, 1);
+            indexer.set(ControlMode.PercentOutput, -1);
+        }
         
     }
 

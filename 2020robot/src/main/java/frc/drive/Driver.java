@@ -88,6 +88,7 @@ public class Driver{
     private NetworkTableEntry driveP = tab2.add("P", RobotNumbers.drivebaseP).getEntry();
     private NetworkTableEntry driveI = tab2.add("I", RobotNumbers.drivebaseI).getEntry();
     private NetworkTableEntry driveD = tab2.add("D", RobotNumbers.drivebaseD).getEntry();
+    private NetworkTableEntry driveF = tab2.add("F", RobotNumbers.drivebaseF).getEntry();
     private NetworkTableEntry driveRotMult = tab2.add("Rotation Factor", RobotNumbers.turnScale).getEntry();
     //private DoubleSolenoid solenoidShifterL, solenoidShifterR;
     private Solenoid shifter; 
@@ -120,11 +121,13 @@ public class Driver{
         leaderR.setInverted(false);
         resetPigeon();
         updatePigeon();
-        setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD);
+        setPID(RobotNumbers.drivebaseP, RobotNumbers.drivebaseI, RobotNumbers.drivebaseD, RobotNumbers.drivebaseF);
         autoStage = 0;
         autoComplete = false;
         setLowGear(false);
         //setupPathfinderAuto();
+        setPID(0,0,0.000005,0.00002);
+        //setPID(0.1e-5,0,30e-4,0.00001);
     }
 
     /**
@@ -137,7 +140,9 @@ public class Driver{
         double[] dataElements = {robotTranslation.getX(), robotTranslation.getY(), Logger.boolToDouble(controller.getButtonDown(5))};
         logger.writeData(dataElements);
         feetDriven = (getFeetLeft()+getFeetRight())/2;
-        setPID(driveP.getDouble(RobotNumbers.drivebaseP), driveI.getDouble(RobotNumbers.drivebaseI), driveD.getDouble(RobotNumbers.drivebaseD));
+        //setPID(driveP.getDouble(RobotNumbers.drivebaseP), driveI.getDouble(RobotNumbers.drivebaseI), driveD.getDouble(RobotNumbers.drivebaseD), driveF.getDouble(RobotNumbers.drivebaseF));
+        //setPID(0,0,0.000005,0.000001);
+        SmartDashboard.putNumber("Left Speed", leaderL.getEncoder().getVelocity());
     }
 
     /**
@@ -157,7 +162,7 @@ public class Driver{
         else{
             drive = controller.getStickLY();
         }
-        pointBall = false;//controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
+        pointBall = controller.getButton(6); //DISABLED BECAUSE WE YOINKED THE LL
         //chaseBall = false;//controller.getRTriggerPressed(); //ALSO DISABLED BECAUSE WE YOINKED THE LL
 
         //!!!!!
@@ -217,9 +222,13 @@ public class Driver{
             // }
             //System.out.println("turn: "+turn);
         }
+
+        leaderL.set(0);
+        leaderR.set(0);
+        System.out.println("X: "+ -robotTranslation.getY()+"  Y: "+robotTranslation.getX());
         
         //drivePID((controller.getStickLY()*(1)) + turnSpeed, (controller.getStickLY()*(1)) - turnSpeed);
-        drive(drive, turn);
+        //drive(drive, turn);
         //drivePure(adjustedDrive(controller.getStickLY()), adjustedRotation(controller.getStickRX()));
     }
 
@@ -262,19 +271,21 @@ public class Driver{
      * @param shifted whether or not the transmissions are to be shifted to low gear
      */
     private void setLowGear(boolean shifted){
-        shifter.set(!shifted);
+        shifter.set(shifted);
     }
 
     /**
      * Set P, I, and D values for the drivetrain.
      */
-    private void setPID(double P, double I, double D){
+    private void setPID(double P, double I, double D, double F){
         leftPID.setP(P);
         leftPID.setI(I);
         leftPID.setD(D);
+        leftPID.setFF(F);
         rightPID.setP(P);
         rightPID.setI(I);
         rightPID.setD(D);
+        rightPID.setFF(F);
 
         leftPID.setOutputRange(-1, 1);
         rightPID.setOutputRange(-1, 1);
@@ -508,6 +519,35 @@ public class Driver{
         }
         return error;
     }
+
+    /**
+     * "Attack"(drive towards) a point on the field. Units are in meters and its scary.
+     * @param targetX - x position of the waypoint in meters
+     * @param targetY - y position of the waypoint in meters
+     * @return Boolean representing whether the robot is within tolerance of the waypoint or not.
+     */
+    public boolean headTowardsPoint(double targetX, double targetY, double speed){
+        double xDiff = targetX-fieldX();
+        double yDiff = targetY-fieldY();
+        //logic: use PID to drive in such a way that the robot's heading is adjusted towards the target as it moves forward
+        //wait is this just pure pursuit made by an idiot?
+        double rotationOffset = headingPID.calculate(headingErrorWraparound(targetX, targetY), 0);
+        boolean xInTolerance = Math.abs(xDiff) < RobotNumbers.autoTolerance;
+        boolean yInTolerance = Math.abs(yDiff) < RobotNumbers.autoTolerance;
+        boolean inTolerance = yInTolerance && xInTolerance;
+        if(!inTolerance){
+            drive(0, rotationOffset*RobotNumbers.autoRotationMultiplier);
+            // leaderL.set(0);
+            // leaderR.set(0);
+        }
+        else{
+            drive(0,0);
+            // leaderL.set(0);
+            // leaderR.set(0);
+        }
+        return inTolerance;
+    }
+
     /**
      * "Attack"(drive towards) a point on the field. Units are in meters and its scary.
      * @param targetX - x position of the waypoint in meters
@@ -598,7 +638,7 @@ public class Driver{
         // SmartDashboard.putNumber("abs", yawAbs());
         // SmartDashboard.putNumber("rotationOffset", -rotationOffset*RobotNumbers.autoRotationMultiplier); //number being fed into drive()
         // SmartDashboard.putNumber("rotationDifference", -(angleTarget-yawWraparound()));
-        // SmartDashboard.putBoolean("inTolerance", inTolerance);
+        SmartDashboard.putBoolean("inTolerance", inTolerance);
         // SmartDashboard.putNumber("left", getMetersLeft());
         // SmartDashboard.putNumber("right", getMetersRight());
         return inTolerance;

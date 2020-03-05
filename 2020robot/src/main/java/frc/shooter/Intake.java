@@ -38,10 +38,18 @@ public class Intake{
     // private NetworkTableEntry pneumaticActuated = tab.add("Pneumatic Actuated", false).getEntry();
     private DoubleSolenoid solenoidIntake;
 
+    private Solenoid sol1, sol7;
+
     public void init(){
         victor = new VictorSPX(RobotMap.intakeMotor);
         panel = new ButtonPanel(3);
         solenoidIntake = new DoubleSolenoid(RobotMap.pcm, RobotMap.intakeOut, RobotMap.intakeIn);
+
+        sol1 = new Solenoid(RobotMap.pcm, 1);
+        sol7 = new Solenoid(RobotMap.pcm, 7);
+
+        sol1.set(false);
+        sol7.set(false);
     }
     private int intakeMult;
     /**

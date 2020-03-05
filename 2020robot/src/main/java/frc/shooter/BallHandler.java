@@ -11,6 +11,7 @@ public class BallHandler{
     public Hopper hopper;
     public Intake intake;
     private JoystickController joy;
+    private ButtonPanel panel;
     public boolean shooting;
     public boolean indexing;
 
@@ -18,6 +19,7 @@ public class BallHandler{
 
     public void init(){
         joy = new JoystickController(1);
+        panel = new ButtonPanel(2);
         //xbox = new XBoxController(0);
         shooter = new Shooter();
         hopper = new Hopper();
@@ -36,10 +38,14 @@ public class BallHandler{
         // if(xbox.getButtonDown(1)){
         //     leds.startShootCycle();
         // }
-        if(joy.getButtonDown(6)){
+        if(panel.getButtonDown(13)){
+            shooter.toggle(true);
+        }
+
+        if(panel.getButtonDown(9)){
             intake.setDeploy(true);
         }
-        if(joy.getButtonDown(4)){
+        if(panel.getButtonDown(8)){
             intake.setDeploy(false);
         }
         if(joy.getHat()==180){
@@ -75,7 +81,16 @@ public class BallHandler{
             hopper.setAgitator(joy.getButton(10));
             hopper.setIndexer(joy.getButton(12));
         }
+        if(panel.getButton(11)){
+            hopper.setReverse(true);
+        }
+        else{
+            hopper.setReverse(false);
+        }
         indexing = (shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable;
+        // if(joy.getButton(3)){
+        //     shooter.toggle(true);
+        // }
         updateMechanisms();
     }
 
@@ -104,8 +119,8 @@ public class BallHandler{
         boolean spinOverride = hopper.spinupOverride.getBoolean(false);
         boolean runDisable = false;//hopper.disableOverride.getBoolean(false);
         shooter.toggle(true);
-        hopper.setAgitator((shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
-        hopper.setIndexer((shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+        hopper.setAgitator((shooter.atSpeed()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+        hopper.setIndexer((shooter.atSpeed()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
     }
 
     public void stopFiring(){
@@ -118,6 +133,7 @@ public class BallHandler{
     private Timer shooterTimer;
     public void setupShooterTimer(){
         shooterTimer = new Timer();
+        timerFlag = false;
         shooterTimer.stop();
         shooterTimer.reset();
         stopFiring();
@@ -136,22 +152,27 @@ public class BallHandler{
         //     stopFiring();          //stop firing
         //     allBallsFired = true;
         // }
-        if((shooter.actualRPM>shooter.speed-50)){
+
+        //if the shooter is at speed, reset and start the timer
+
+        if(shooter.atSpeed()){
             if(!timerFlag){
+                shooterTimer.reset();
                 shooterTimer.start();
                 timerFlag = true;
                 System.out.println("Starting Timer");
             }
         }
-        if(!(shooter.actualRPM>shooter.speed-50)){
+        if(!shooter.atSpeed()){
             timerFlag = false;
             shooterTimer.stop();
             System.out.println("Stopping Timer");
             //shooterTimer.reset();
         }
-        if((shooter.actualRPM>shooter.speed-50)&&shooterTimer.get()>1.8){
+        if((shooter.atSpeed())&&shooterTimer.get()>0.4){
             stopFiring();
             shooterTimer.stop();
+            shooterTimer.reset();
             allBallsFired = true;
             System.out.println("STOPPING THINGS!!!!!!");
         }

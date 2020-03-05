@@ -36,6 +36,7 @@ public class RobotMap{
     public static final int intakeIn = 5;
     public static final int buddyUnlock = 0;
     public static final int shifters = 6;
-
+    public static final int climberLockIn = 2;
+    public static final int climberLockOut = 3;
     
 }
