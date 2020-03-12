@@ -86,7 +86,8 @@ public class Autos{
         {0,0,0, -2}
     };
 
-    public static final double[][] intakeSpinupTargetShootAuto = {
+    public static final double[][] intakeSpinupTargetShootAuto = { //intake 2 and shoot
+        {0,0,0, 8},
         {0,0,0, 5}, //spinup shooter
         {0,0,0, 6}, //start intake
         {0,3.8,0.4, -1}, //move
@@ -162,7 +163,7 @@ public class Autos{
         {0.14, 2.15, 0.4, -1},
         {0,0,0,5},
         {0, 0.85, 0.5, -3},
-        {-0.21, 2.15, 0.4, -1},
+        {-0.21, 2.2, 0.4, -1},
         {-4, 0.73, 0.5, -3},
         {0,0,0,7},
 
@@ -188,5 +189,10 @@ public class Autos{
 
     public static final double[][] midAuto = {
 
+    };
+
+    public static final double[][] nothingAuto = {
+        {0,0,0,0},
+        {0,0,0, -2}
     };
 }

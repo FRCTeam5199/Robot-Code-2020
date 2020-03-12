@@ -99,6 +99,7 @@ public class Turret{
     }
 
     public void update(){
+        //SmartDashboard.putNumber("slider",joy.getSlider());
         fMultiplier = fMult.getDouble(0);
         targetPosition = pos.getDouble(0);
         //setPosPID(p.getDouble(0.09), i.getDouble(0), d.getDouble(0));
@@ -139,6 +140,7 @@ public class Turret{
             if(chasingTarget){
                 //System.out.println(chasingTarget);
                 omegaSetpoint = positionControl.calculate(turretDegrees(), targetAngle);
+                //omegaSetpoint += joy.getXAxis();
             }
             //scan();
             //omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(235+yawWrap()-360));
@@ -146,6 +148,10 @@ public class Turret{
         else{//target good
             SmartDashboard.putString("mode", "Facing Target");
             omegaSetpoint += positionControl.calculate(-chameleon.getGoalAngle(), angleOffset.getDouble(-2.9));
+        }
+
+        if(panel.getButton(12)){
+            omegaSetpoint = joy.getXAxis()*2;
         }
 
         //omegaSetpoint += positionControl.calculate(turretDegrees(), targetPosition);
@@ -160,7 +166,10 @@ public class Turret{
 
         boolean safe = turretDegrees()<271 && turretDegrees()>-1;
         if(safe){
-            if(/*spinButton.getBoolean(false)&&*/track){
+            if(/*spinButton.getBoolean(false)&&*/true){
+                // if(panel.getButton(12)){
+                //     omegaSetpoint = 2*joy.getXAxis();
+                // }
                 rotateTurret(omegaSetpoint);
                 //System.out.println("Attempting to rotate the POS at" + omegaSetpoint);
             }

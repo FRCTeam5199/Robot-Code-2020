@@ -51,6 +51,12 @@ public class Intake{
         sol1.set(false);
         sol7.set(false);
     }
+
+    public void closeUnusedSolenoids(){
+        sol1.set(false);
+        sol7.set(false);
+    }
+
     private int intakeMult;
     /**
      * Set intake direction

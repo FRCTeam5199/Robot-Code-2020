@@ -48,6 +48,7 @@ public class Hopper{
 
     public boolean autoIndex = true;
     private boolean isReversed = false;
+    private boolean isForced = false;
 
 
     public void init(){
@@ -96,31 +97,35 @@ public class Hopper{
         isReversed = reverse;
     }
 
+    public void setForced(boolean forced){
+        isForced = forced;
+    }
+
     public void update(){
         SmartDashboard.putBoolean("indexer enable", indexerActive);
         SmartDashboard.putBoolean("agitator enable", agitatorActive);
         SmartDashboard.putNumber("indexer sensor", indexerSensorRange());
         boolean indexerOverride = false;
 
-        if(indexerSensorRange()>5){
-            indexer.set(ControlMode.PercentOutput, 0.25);
-            agitator.set(ControlMode.PercentOutput, 0.2);
+        if(indexerSensorRange()>9){
+            indexer.set(ControlMode.PercentOutput, 0.3);
+            agitator.set(ControlMode.PercentOutput, 0.3);
             indexerOverride = true;
         }
-        if(indexerSensorRange()<5){
+        if(indexerSensorRange()<9){ 
             indexer.set(ControlMode.PercentOutput, 0);
             agitator.set(ControlMode.PercentOutput, 0);
             indexerOverride = false;
         }
 
         if(indexerActive){
-            indexer.set(ControlMode.PercentOutput, 0.65);
+            indexer.set(ControlMode.PercentOutput, 0.9);
         }
         else if(!indexerOverride){
             indexer.set(ControlMode.PercentOutput, 0);
         }
         if(agitatorActive){
-            agitator.set(ControlMode.PercentOutput, 0.6);
+            agitator.set(ControlMode.PercentOutput, 0.5);
         }
         else if(!indexerOverride){
             agitator.set(ControlMode.PercentOutput, 0);
@@ -128,7 +133,12 @@ public class Hopper{
 
         if(isReversed){
             agitator.set(ControlMode.PercentOutput, -1);
-            indexer.set(ControlMode.PercentOutput, -1);
+            //indexer.set(ControlMode.PercentOutput, -1);
+        }
+
+        if(isForced){
+            agitator.set(ControlMode.PercentOutput, 0.9);
+            indexer.set(ControlMode.PercentOutput, 0.65);
         }
         
     }

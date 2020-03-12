@@ -52,6 +52,7 @@ public class Climber{
         //     drive(0);
         // }
         if(panel.getButton(1)){
+            climberLock.set(Value.kReverse);
             drive(0.7);
         }
         else if(panel.getButton(2)){

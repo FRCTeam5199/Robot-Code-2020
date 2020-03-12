@@ -270,7 +270,7 @@ public class Driver{
      * Set the gear of the transmissions.
      * @param shifted whether or not the transmissions are to be shifted to low gear
      */
-    private void setLowGear(boolean shifted){
+    public void setLowGear(boolean shifted){
         shifter.set(shifted);
     }
 

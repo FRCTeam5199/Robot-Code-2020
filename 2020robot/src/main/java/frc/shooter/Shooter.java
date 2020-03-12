@@ -16,6 +16,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Units;
+import frc.controllers.ButtonPanel;
 import frc.controllers.JoystickController;
 import frc.controllers.XBoxController;
 import frc.robot.RobotMap;
@@ -31,8 +32,9 @@ public class Shooter{
     private CANPIDController speedo;
     private CANEncoder encoder;
     private XBoxController xbox;
-    private boolean enabled = true; 
+    private boolean enabled = true;
     private JoystickController joy;
+    private ButtonPanel panel;
 
     private Timer timer = new Timer();
     private Logger logger = new Logger("shooter");
@@ -138,6 +140,11 @@ public class Shooter{
         else{
             speed = lastSpeed;
         }
+
+        if(panel.getButton(13)){
+            speed = 4200;
+        }
+
         // if(!joy.getButton(1)){
         //     speed = interpolateSpeed();
         // }
@@ -160,11 +167,11 @@ public class Shooter{
         P = 0.00035;
         I = 0;
         D = 0;
-        F = 0.000185;//shooterF.getDouble(0.000185);
+        F = 0.00019;//shooterF.getDouble(0.000185);
         
 
         //3.00E-04	1.00E-07	0.07 (tentative values, not perfect yet)
-        recoveryP = 0.00037; //recP.getDouble(3e-4);
+        recoveryP = 0.00038; //recP.getDouble(3e-4);
         recoveryI = 0; //recI.getDouble(1e-7);
         recoveryD = 0; //recD.getDouble(0.07);
 
@@ -178,26 +185,28 @@ public class Shooter{
             //leader.set(0.05);
         //toggle(toggle);
         //enabled = true; //REMOVE IF RUNNING THE SHOOTER ALL THE TIME IS BAD
-        if(enabled){
-            //poweredState = true;
-            if(RobotToggles.shooterPID){
-                setSpeed(speed);
-            }
-            else{
-                leader.set(speed);
-            }
-        }
-        else{
-            //poweredState = false;
-            if(RobotToggles.shooterPID){
-                //do nothing because the voltage being set to 0 *should* coast it?
-                //to past me: it does
-                leader.set(0);
-            }
-            else{
-                leader.set(0);
-            }
-        }
+        //speed = 4150;
+        setSpeed(speed);
+        // if(!panel.getButton(13)/*enabled||panel.getButton(13)*/){
+        //     //poweredState = true;
+        //     if(RobotToggles.shooterPID){
+        //         setSpeed(speed);
+        //     }
+        //     else{
+        //         leader.set(speed);
+        //     }
+        // }
+        // else{
+        //     //poweredState = false;
+        //     if(RobotToggles.shooterPID){
+        //         //do nothing because the voltage being set to 0 *should* coast it?
+        //         //to past me: it does
+        //         leader.set(speed);
+        //     }
+        //     else{
+        //         leader.set(0);
+        //     }
+        // }
 
         SmartDashboard.putNumber("RPM", actualRPM);
         SmartDashboard.putNumber("Target RPM", speed);
@@ -340,6 +349,7 @@ public class Shooter{
         chameleon.init();
         SmartDashboard.putString("ZONE", "none");
         joy = new JoystickController(1);
+        panel = new ButtonPanel(2);
     }
 
     /**
@@ -364,6 +374,7 @@ public class Shooter{
         timer.start();
         //permalogger.init();
     }
+
     /**
      * Close the Shooter logger, call during disabledInit().
      */
@@ -401,9 +412,10 @@ public class Shooter{
         {85, 4500},
     };
 
-    private double speedMult = 0.96;
+    private double speedMult = 1;
     private double interpolateSpeed(){
         double size = chameleon.getGoalSize();
+        double finalMult = (joy.getSlider()*0.15)+1;
         int index = 0;
         for(int i = 0; i<sizeSpeedsArray.length ; i++){
             if(size>sizeSpeedsArray[i][0]){
@@ -412,7 +424,7 @@ public class Shooter{
         }
         //now index is the index of the low end, index+1 = high end
         if(index+1>=sizeSpeedsArray.length){
-            return sizeSpeedsArray[sizeSpeedsArray.length-1][1];
+            return sizeSpeedsArray[sizeSpeedsArray.length-1][1]*speedMult*finalMult;
         }
         double sizeGap = sizeSpeedsArray[index][0]-sizeSpeedsArray[index+1][0];
         double gapFromLowEnd = size-sizeSpeedsArray[index][0];
@@ -420,11 +432,34 @@ public class Shooter{
 
         double speedGap = sizeSpeedsArray[index][1]-sizeSpeedsArray[index+1][1];
         double outSpeed = sizeSpeedsArray[index][1] + speedGap*portionOfGap; //low end + gap * portion
-        return outSpeed*speedMult;
+        SmartDashboard.putNumber("Interpolating Shooter Speed", outSpeed*speedMult*finalMult);
+        return outSpeed*speedMult*finalMult;
     }
     
+    private double[][] voltageFFArray = {
+        {0, 0},
+        {11, 190},
+        {13, 185}
+    };
+
     private double interpolateFF(){
         double voltage = RobotController.getBatteryVoltage();
+        int index = 0;
+        for(int i = 0; i<voltageFFArray.length ; i++){
+            if(voltage>voltageFFArray[i][0]){
+                index = i;
+            }
+        }
+        //now index is the index of the low end, index+1 = high end
+        if(index+1>=voltageFFArray.length){
+            return voltageFFArray[sizeSpeedsArray.length-1][1];
+        }
+        double sizeGap = voltageFFArray[index][0]-voltageFFArray[index+1][0];
+        double gapFromLowEnd = voltage-voltageFFArray[index][0];
+        double portionOfGap = gapFromLowEnd/sizeGap;
+
+        double speedGap = voltageFFArray[index][1]-voltageFFArray[index+1][1];
+        double outSpeed = voltageFFArray[index][1] + speedGap*portionOfGap; //low end + gap * portion
         return 0;
     }
 }

@@ -14,6 +14,7 @@ public class BallHandler{
     private ButtonPanel panel;
     public boolean shooting;
     public boolean indexing;
+    private boolean forceDisable;
 
     //private XBoxController xbox;
 
@@ -28,6 +29,7 @@ public class BallHandler{
         hopper.init();
         intake.init();
         indexing = false;
+        forceDisable = false;
         //leds = new ShooterLEDs();
         //leds.init();
     }
@@ -87,7 +89,29 @@ public class BallHandler{
         else{
             hopper.setReverse(false);
         }
-        indexing = (shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable;
+
+        if(panel.getButton(10)){
+            hopper.setForced(true);
+        }
+        else{
+            hopper.setForced(false);
+        }
+
+
+        if(panel.getButtonDown(6)){
+            forceDisable = true;
+        }
+        if(panel.getButtonDown(7)){
+            forceDisable = false;
+        }
+        
+        // if(forceDisable){
+        //     hopper.setAgitator(false);
+        //     hopper.setIndexer(false);
+        // }
+
+        indexing = joy.getButton(1);
+        //(shooter.spunUp()||spinOverride);//&&(shooter.validTarget()||true)&&!runDisable;
         // if(joy.getButton(3)){
         //     shooter.toggle(true);
         // }
@@ -119,8 +143,8 @@ public class BallHandler{
         boolean spinOverride = hopper.spinupOverride.getBoolean(false);
         boolean runDisable = false;//hopper.disableOverride.getBoolean(false);
         shooter.toggle(true);
-        hopper.setAgitator((shooter.atSpeed()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
-        hopper.setIndexer((shooter.atSpeed()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+        hopper.setAgitator((shooter.atSpeed()||spinOverride));//&&(shooter.validTarget()||visOverride)&&!runDisable);
+        hopper.setIndexer((shooter.atSpeed()||spinOverride));//&&(shooter.validTarget()||visOverride)&&!runDisable);
     }
 
     public void stopFiring(){

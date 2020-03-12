@@ -57,10 +57,11 @@ public class Robot extends TimedRobot {
     // chooser.addOption("Drive+Aim+Shoot Rightmost goto Trench", Autos.runAimShootTrenchAutoRightmost);
     //chooser.addOption("Intake and Move", Autos.intakeOnlyAuto);
     // chooser.addOption("Intake, Move, Target", Autos.intakeTargetOnlyAuto);
-    chooser.addOption("Intake 2 and Shoot", Autos.intakeSpinupTargetShootAuto);
-    chooser.addOption("Drive Forward Then Back", Autos.driveForwardThenReverse);
+    chooser.addOption("(Right) Intake 2 and Shoot", Autos.intakeSpinupTargetShootAuto);
+    //chooser.addOption("Drive Forward Then Back", Autos.driveForwardThenReverse);
     chooser.addOption("(Right) Rendezvous + Trench", Autos.driveToRendezvousThenBackThenToTrench);
     chooser.addOption("(Left) Steal Two, Shoot", Autos.stealTwoAuto);
+    chooser.addOption("Do Nothing", Autos.nothingAuto);
     SmartDashboard.putData("Auto choices", chooser);
 
     driver = new Driver();
@@ -90,6 +91,7 @@ public class Robot extends TimedRobot {
 
     baller = new BallHandler();
     baller.init();
+    baller.intake.setDeploy(false);
   }
 
   /**
@@ -106,6 +108,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    baller.intake.setDeploy(false);
     //driver.resetAuton();
     //driver.initPathfinderAuto();
     //shooter.initLogger();
@@ -143,8 +146,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    setStuffUp();
+    baller.intake.setDeploy(true);
+    baller.hopper.indexSensor.setAutomaticMode(true);
+    baller.hopper.indexSensor.setRangeProfile(RangeProfile.kHighSpeed);
+    baller.hopper.indexSensor.setEnabled(true);
+    //setStuffUp();
     //testInit();
+    // shooter.initLogger();
+    // pdp.initLogger();
     //driver.stopMotors();
     //shooter.initLogger();
     //pdp.initLogger();
@@ -187,8 +196,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
-    driver.updateTest();
-    //driver.updateTeleop(); //USE FOR PRACTICE
+    //driver.updateTest();
+    driver.updateTeleop(); //USE FOR PRACTICE
     baller.update(); //USE
     climber.update();
     //turret.setDriveOmega(driver.omega());
@@ -210,6 +219,9 @@ public class Robot extends TimedRobot {
     driver.closeLogger();
     baller.stopFiring();
     climber.buddyLock.set(false);
+    driver.setLowGear(false);
+    baller.intake.setDeploy(false);
+    baller.intake.closeUnusedSolenoids();
   }
 
   public void updateAuto(double[][] auto){
@@ -310,7 +322,7 @@ public class Robot extends TimedRobot {
   private boolean specialActionFireAll(){
     cycles++;
     baller.fireThreeBalls();
-    SmartDashboard.putString("Auto Mode", "Shooting Balls for "+cycles+" cycles, "+baller.allBallsFired);
+    //SmartDashboard.putString("Auto Mode", "Shooting Balls for "+cycles+" cycles, "+baller.allBallsFired);
     //baller.update();
     return baller.allBallsFired;
   }
