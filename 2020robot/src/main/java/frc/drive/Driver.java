@@ -85,10 +85,10 @@ public class Driver{
     private double feetDriven = 0;
 
     private ShuffleboardTab tab2 = Shuffleboard.getTab("drive");
-    private NetworkTableEntry driveP = tab2.add("P", RobotNumbers.drivebaseP).getEntry();
-    private NetworkTableEntry driveI = tab2.add("I", RobotNumbers.drivebaseI).getEntry();
-    private NetworkTableEntry driveD = tab2.add("D", RobotNumbers.drivebaseD).getEntry();
-    private NetworkTableEntry driveF = tab2.add("F", RobotNumbers.drivebaseF).getEntry();
+    // private NetworkTableEntry driveP = tab2.add("P", RobotNumbers.drivebaseP).getEntry();
+    // private NetworkTableEntry driveI = tab2.add("I", RobotNumbers.drivebaseI).getEntry();
+    // private NetworkTableEntry driveD = tab2.add("D", RobotNumbers.drivebaseD).getEntry();
+    // private NetworkTableEntry driveF = tab2.add("F", RobotNumbers.drivebaseF).getEntry();
     private NetworkTableEntry driveRotMult = tab2.add("Rotation Factor", RobotNumbers.turnScale).getEntry();
     //private DoubleSolenoid solenoidShifterL, solenoidShifterR;
     private Solenoid shifter; 
@@ -128,6 +128,15 @@ public class Driver{
         //setupPathfinderAuto();
         setPID(0,0,0.000005,0.00002);
         //setPID(0.1e-5,0,30e-4,0.00001);
+    }
+
+    public void setCurrentLimits(double limit){
+        leaderL.setSmartCurrentLimit((int)limit);
+        followerL1.setSmartCurrentLimit((int)limit);
+        followerL2.setSmartCurrentLimit((int)limit);
+        leaderR.setSmartCurrentLimit((int)limit);
+        followerR1.setSmartCurrentLimit((int)limit);
+        followerR2.setSmartCurrentLimit((int)limit);
     }
 
     /**
@@ -270,7 +279,7 @@ public class Driver{
      * Set the gear of the transmissions.
      * @param shifted whether or not the transmissions are to be shifted to low gear
      */
-    private void setLowGear(boolean shifted){
+    public void setLowGear(boolean shifted){
         shifter.set(shifted);
     }
 

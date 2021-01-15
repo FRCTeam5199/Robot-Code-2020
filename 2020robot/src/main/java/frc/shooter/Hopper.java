@@ -39,15 +39,17 @@ public class Hopper{
     private double fireOffset = 0;
     private ButtonPanel panel;
     private Joystick joy;
-    private ShuffleboardTab tab = Shuffleboard.getTab("balls");
-    private NetworkTableEntry aSpeed = tab.add("Agitator Speed", 0.6).getEntry();
-    private NetworkTableEntry iSpeed = tab.add("Indexer Speed", 0.7).getEntry();
-    public NetworkTableEntry visionOverride = tab.add("VISION OVERRIDE", false).getEntry();
-    public NetworkTableEntry spinupOverride = tab.add("SPINUP OVERRIDE", false).getEntry();
-    public NetworkTableEntry disableOverride = tab.add("LOADING DISABLE", false).getEntry();
+    // private ShuffleboardTab tab = Shuffleboard.getTab("balls");
+    // private NetworkTableEntry aSpeed = tab.add("Agitator Speed", 0.6).getEntry();
+    // private NetworkTableEntry iSpeed = tab.add("Indexer Speed", 0.7).getEntry();
+    // public NetworkTableEntry visionOverride = tab.add("VISION OVERRIDE", false).getEntry();
+    // public NetworkTableEntry spinupOverride = tab.add("SPINUP OVERRIDE", false).getEntry();
+    // public NetworkTableEntry disableOverride = tab.add("LOADING DISABLE", false).getEntry();
 
     public boolean autoIndex = true;
     private boolean isReversed = false;
+    private boolean isForced = false;
+    public boolean indexed = false;
 
 
     public void init(){
@@ -61,27 +63,27 @@ public class Hopper{
         //joy = new Joystick(3);
     }
 
-    public void updateSimple(){
-        if(panel.getButton(8)){
-            indexer.set(ControlMode.PercentOutput, iSpeed.getDouble(0.6));
-        }
-        else if(panel.getButton(9)){
-            indexer.set(ControlMode.PercentOutput, -iSpeed.getDouble(0.6));
-        }
-        else{
-            indexer.set(ControlMode.PercentOutput, 0);
-        }
+    // public void updateSimple(){
+    //     if(panel.getButton(8)){
+    //         indexer.set(ControlMode.PercentOutput, iSpeed.getDouble(0.6));
+    //     }
+    //     else if(panel.getButton(9)){
+    //         indexer.set(ControlMode.PercentOutput, -iSpeed.getDouble(0.6));
+    //     }
+    //     else{
+    //         indexer.set(ControlMode.PercentOutput, 0);
+    //     }
 
-        if(panel.getButton(3)){
-            agitator.set(ControlMode.PercentOutput, aSpeed.getDouble(0.7));
-        }
-        else if(panel.getButton(4)){
-            agitator.set(ControlMode.PercentOutput, -aSpeed.getDouble(0.7));
-        }
-        else{
-            agitator.set(ControlMode.PercentOutput, 0);
-        }
-    }
+    //     if(panel.getButton(3)){
+    //         agitator.set(ControlMode.PercentOutput, aSpeed.getDouble(0.7));
+    //     }
+    //     else if(panel.getButton(4)){
+    //         agitator.set(ControlMode.PercentOutput, -aSpeed.getDouble(0.7));
+    //     }
+    //     else{
+    //         agitator.set(ControlMode.PercentOutput, 0);
+    //     }
+    // }
 
     private boolean agitatorActive, indexerActive;
     
@@ -96,25 +98,31 @@ public class Hopper{
         isReversed = reverse;
     }
 
+    public void setForced(boolean forced){
+        isForced = forced;
+    }
+
     public void update(){
         SmartDashboard.putBoolean("indexer enable", indexerActive);
         SmartDashboard.putBoolean("agitator enable", agitatorActive);
         SmartDashboard.putNumber("indexer sensor", indexerSensorRange());
         boolean indexerOverride = false;
 
-        if(indexerSensorRange()>5){
-            indexer.set(ControlMode.PercentOutput, 0.25);
-            agitator.set(ControlMode.PercentOutput, 0.2);
+        if(indexerSensorRange()>9){
+            indexer.set(ControlMode.PercentOutput, 0.3);
+            agitator.set(ControlMode.PercentOutput, 0.3);
+            indexed = false;
             indexerOverride = true;
         }
-        if(indexerSensorRange()<5){
+        if(indexerSensorRange()<9){ 
             indexer.set(ControlMode.PercentOutput, 0);
             agitator.set(ControlMode.PercentOutput, 0);
+            indexed = true;
             indexerOverride = false;
         }
 
         if(indexerActive){
-            indexer.set(ControlMode.PercentOutput, 0.65);
+            indexer.set(ControlMode.PercentOutput, 0.8);
         }
         else if(!indexerOverride){
             indexer.set(ControlMode.PercentOutput, 0);
@@ -128,7 +136,12 @@ public class Hopper{
 
         if(isReversed){
             agitator.set(ControlMode.PercentOutput, -1);
-            indexer.set(ControlMode.PercentOutput, -1);
+            //indexer.set(ControlMode.PercentOutput, -1);
+        }
+    
+        if(isForced){
+            agitator.set(ControlMode.PercentOutput, 0.6);
+            indexer.set(ControlMode.PercentOutput, 0.8);
         }
         
     }

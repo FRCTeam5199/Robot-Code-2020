@@ -1,7 +1,7 @@
 package frc.drive;
 
 public class Autos{
-    //[row(stage)][column(data, 0 for x, 1 for y, 2 for speed, 3 for special move #)]
+    //[row(stage)][column(DATA: 0 for x, 1 for y, 2 for speed, 3 for special move #)]
     //special move - -1 for none(just drive), -3 for reverse drive, 0-whatever for whichever action to do, -2 for terminate
     public static final double[][] testAuto = {
         //{row#c0, row#c1, row#c2, row#c3},
@@ -16,6 +16,18 @@ public class Autos{
     public static final double[][] defaultAuto = {
         {0,0,0, 0},
         {0,1.2,0.4, -1}, //was 2.5
+        {0,0,0, -2}
+    };
+
+    public static final double[][] runForwardAimShootAuto = {
+        {0,0,0, 0},
+        {0,0,0,5}, //spin up
+        {0,1.2,0.4, -1}, //was 2.5
+        {0,0,0,11}, //point turret
+        {0,0,0,4}, //disable turret
+        {0,0,0, 3}, //prep shoot
+        {0,0,0, 2}, //shoot all
+
         {0,0,0, -2}
     };
 
@@ -86,15 +98,16 @@ public class Autos{
         {0,0,0, -2}
     };
 
-    public static final double[][] intakeSpinupTargetShootAuto = {
+    public static final double[][] intakeSpinupTargetShootAuto = { //intake 2 and shoot
+        {0,0,0, 8},
         {0,0,0, 5}, //spinup shooter
         {0,0,0, 6}, //start intake
         {0,3.8,0.4, -1}, //move
         {0,0,0, 1}, //turn
         {0,0,0, 4}, //aim
-        {0,0,0, 7}, //stop intake
         {0,0,0, 3}, //prep shoot
         {0,0,0, 2}, //shoot all
+        {0,0,0, 7}, //stop intake
         {0,0,0, -2}
     };
 
@@ -162,7 +175,7 @@ public class Autos{
         {0.14, 2.15, 0.4, -1},
         {0,0,0,5},
         {0, 0.85, 0.5, -3},
-        {-0.21, 2.15, 0.4, -1},
+        {-0.21, 2.2, 0.4, -1},
         {-4, 0.73, 0.5, -3},
         {0,0,0,7},
 
@@ -188,5 +201,10 @@ public class Autos{
 
     public static final double[][] midAuto = {
 
+    };
+
+    public static final double[][] nothingAuto = {
+        {0,0,0,0},
+        {0,0,0, -2}
     };
 }

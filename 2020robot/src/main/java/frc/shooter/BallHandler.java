@@ -14,6 +14,9 @@ public class BallHandler{
     private ButtonPanel panel;
     public boolean shooting;
     public boolean indexing;
+    private boolean forceDisable;
+    private Timer shootTimer;
+    private Timer indexTimer;
 
     //private XBoxController xbox;
 
@@ -24,10 +27,17 @@ public class BallHandler{
         shooter = new Shooter();
         hopper = new Hopper();
         intake = new Intake();
+        shootTimer = new Timer();
+        indexTimer = new Timer();
+        indexTimer.stop();
+        indexTimer.reset();
+        shootTimer.stop();
+        shootTimer.reset();
         shooter.init();
         hopper.init();
         intake.init();
         indexing = false;
+        forceDisable = false;
         //leds = new ShooterLEDs();
         //leds.init();
     }
@@ -39,7 +49,7 @@ public class BallHandler{
         //     leds.startShootCycle();
         // }
         if(panel.getButtonDown(13)){
-            shooter.toggle(true);
+        shooter.toggle(true);
         }
 
         if(panel.getButtonDown(9)){
@@ -63,21 +73,24 @@ public class BallHandler{
             //deployn't intake
             //intake.setDeploy(false);
         }
-        boolean visOverride = hopper.visionOverride.getBoolean(false);
-        boolean spinOverride = hopper.spinupOverride.getBoolean(false);
-        boolean runDisable = hopper.disableOverride.getBoolean(false);
-        if(joy.getButton(1)){
-            fireHighAccuracy();
-            shooting = true;
-        }
-        else{
-            shooter.toggle(false);
-            hopper.setAgitator(false);
-            hopper.setIndexer(false);
-            shooting = false;
-        }
+        // boolean visOverride = hopper.visionOverride.getBoolean(false);
+        // boolean spinOverride = hopper.spinupOverride.getBoolean(false);
+        // boolean runDisable = hopper.disableOverride.getBoolean(false);
+        //fireTimed();
+//fireIndexerDependent();
+        //fireMixed();
+        // if(joy.getButton(1)){
+        //     fireHighAccuracy();
+        //     shooting = true;
+        // }
+        // else{
+        //     shooter.toggle(false);
+        //     hopper.setAgitator(false);
+        //     hopper.setIndexer(false);
+        //     shooting = false;
+        // }
         if(joy.getButton(11)){
-            shooter.toggle(joy.getButton(8));
+        shooter.toggle(joy.getButton(8));
             hopper.setAgitator(joy.getButton(10));
             hopper.setIndexer(joy.getButton(12));
         }
@@ -87,7 +100,29 @@ public class BallHandler{
         else{
             hopper.setReverse(false);
         }
-        indexing = (shooter.spunUp()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable;
+
+        if(panel.getButton(10)){
+            hopper.setForced(true);
+        }
+        else{
+            hopper.setForced(false);
+        }
+
+
+        if(panel.getButtonDown(6)){
+            forceDisable = true;
+        }
+        if(panel.getButtonDown(7)){
+            forceDisable = false;
+        }
+        
+        // if(forceDisable){
+        //     hopper.setAgitator(false);
+        //     hopper.setIndexer(false);
+        // }
+
+        indexing = joy.getButton(1);
+        //(shooter.spunUp()||spinOverride);//&&(shooter.validTarget()||true)&&!runDisable;
         // if(joy.getButton(3)){
         //     shooter.toggle(true);
         // }
@@ -95,7 +130,7 @@ public class BallHandler{
     }
 
     public void updateMechanisms(){
-        shooter.update();
+//shooter.update();
         intake.update();
         hopper.update();
         //leds.update();
@@ -106,25 +141,99 @@ public class BallHandler{
     }
 
     public void fireHighSpeed(){
-        boolean visOverride = hopper.visionOverride.getBoolean(false);
-        boolean spinOverride = hopper.spinupOverride.getBoolean(false);
-        boolean runDisable = hopper.disableOverride.getBoolean(false);
-        shooter.toggle(true);
-        hopper.setAgitator((shooter.spunUp()||shooter.recovering()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
-        hopper.setIndexer((shooter.spunUp()||shooter.recovering()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+        // boolean visOverride = hopper.visionOverride.getBoolean(false);
+        // boolean spinOverride = hopper.spinupOverride.getBoolean(false);
+        // boolean runDisable = hopper.disableOverride.getBoolean(false);
+//shooter.toggle(true);
+        hopper.setAgitator((shooter.spunUp()||shooter.recovering()||false)&&(shooter.validTarget()||false)&&!false);
+        hopper.setIndexer((shooter.spunUp()||shooter.recovering()||false)&&(shooter.validTarget()||false)&&!false);
     }
 
     public void fireHighAccuracy(){
-        boolean visOverride = hopper.visionOverride.getBoolean(false);
-        boolean spinOverride = hopper.spinupOverride.getBoolean(false);
+        // boolean visOverride = hopper.visionOverride.getBoolean(false);
+        // boolean spinOverride = hopper.spinupOverride.getBoolean(false);
         boolean runDisable = false;//hopper.disableOverride.getBoolean(false);
-        shooter.toggle(true);
-        hopper.setAgitator((shooter.atSpeed()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
-        hopper.setIndexer((shooter.atSpeed()||spinOverride)&&(shooter.validTarget()||visOverride)&&!runDisable);
+//shooter.toggle(true);
+        hopper.setAgitator((shooter.atSpeed()||false));//&&(shooter.validTarget()||visOverride)&&!runDisable);
+        hopper.setIndexer((shooter.atSpeed()||false));//&&(shooter.validTarget()||visOverride)&&!runDisable);
+    }
+
+    private void fireMixed(){
+        if(joy.getButton(1)){
+            shooting = true;
+            if(shooter.atSpeed()&&hopper.indexed){
+                if(!timerStarted){
+                    shootTimer.start();
+                    timerStarted = true;
+                }
+                if(shootTimer.hasPeriodPassed(0.1)){
+                    hopper.setIndexer(true);
+                    //hopper.setAgitator(true);
+                }
+            }
+            else{
+                hopper.setIndexer(false);
+                hopper.setAgitator(false);
+                shootTimer.stop();
+                shootTimer.reset();
+                timerStarted = false;
+            }
+        }
+        else{
+            shooting = false;
+            hopper.setIndexer(false);
+            hopper.setAgitator(false);
+            shootTimer.stop();
+            shootTimer.reset();
+            timerStarted = false;
+        }
+    }
+
+    private void fireIndexerDependent(){
+        if(joy.getButton(1)){
+            hopper.setIndexer(shooter.atSpeed&&hopper.indexed);
+        }
+    }
+
+
+    private boolean timerStarted = false;
+    public void fireTimed(){
+        if(joy.getButton(1)){
+            shooting = true;
+            if(shooter.atSpeed()){
+                if(!timerStarted){
+                    shootTimer.start();
+                    timerStarted = true;
+                }
+                if(shootTimer.hasPeriodPassed(0.5)){
+                    hopper.setIndexer(true);
+                    //hopper.setAgitator(true);
+                }
+            }
+            else{
+                hopper.setIndexer(false);
+                hopper.setAgitator(false);
+                shootTimer.stop();
+                shootTimer.reset();
+                timerStarted = false;
+            }
+        }
+        else{
+            shooting = false;
+            hopper.setIndexer(false);
+            hopper.setAgitator(false);
+            shootTimer.stop();
+            shootTimer.reset();
+            timerStarted = false;
+        }
+    }
+
+    public void feedIn(){
+
     }
 
     public void stopFiring(){
-        shooter.toggle(false);
+//shooter.toggle(false);
         hopper.setAgitator(false);
         hopper.setIndexer(false);
         shooting = false;

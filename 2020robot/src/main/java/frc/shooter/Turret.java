@@ -46,18 +46,18 @@ public class Turret{
     private ShuffleboardTab tab = Shuffleboard.getTab("Turret");
     private NetworkTableEntry fMult = tab.add("F Multiplier", 0).getEntry();
     private NetworkTableEntry pos = tab.add("Position", 0).getEntry();
-    private NetworkTableEntry p = tab.add("P", 0.09).getEntry();
-    private NetworkTableEntry i = tab.add("I", 0).getEntry();
-    private NetworkTableEntry d = tab.add("D", 0).getEntry();
-    private NetworkTableEntry mP = tab.add("mP", 0).getEntry();
-    private NetworkTableEntry mI = tab.add("mI", 0).getEntry();
-    private NetworkTableEntry mD = tab.add("mD", 0).getEntry();
+    // private NetworkTableEntry p = tab.add("P", 0.09).getEntry();
+    // private NetworkTableEntry i = tab.add("I", 0).getEntry();
+    // private NetworkTableEntry d = tab.add("D", 0).getEntry();
+    // private NetworkTableEntry mP = tab.add("mP", 0).getEntry();
+    // private NetworkTableEntry mI = tab.add("mI", 0).getEntry();
+    // private NetworkTableEntry mD = tab.add("mD", 0).getEntry();
     private NetworkTableEntry arbDriveMult = tab.add("drive omega mult", -0.25).getEntry();
-    private NetworkTableEntry spinButton = tab.add("rotate", false).getEntry();
+    // private NetworkTableEntry spinButton = tab.add("rotate", false).getEntry();
     private NetworkTableEntry angleOffset = tab.add("angle offset", -2.9).getEntry();
 
     private NetworkTableEntry rotSpeed = tab.add("rotationSpeed", 0).getEntry();
-    private NetworkTableEntry deadbandAdd = tab.add("deadband constant", 0.01).getEntry();
+    // private NetworkTableEntry deadbandAdd = tab.add("deadband constant", 0.01).getEntry();
 
     private GoalChameleon chameleon;
 
@@ -99,6 +99,7 @@ public class Turret{
     }
 
     public void update(){
+        //SmartDashboard.putNumber("slider",joy.getSlider());
         fMultiplier = fMult.getDouble(0);
         targetPosition = pos.getDouble(0);
         //setPosPID(p.getDouble(0.09), i.getDouble(0), d.getDouble(0));
@@ -139,6 +140,7 @@ public class Turret{
             if(chasingTarget){
                 //System.out.println(chasingTarget);
                 omegaSetpoint = positionControl.calculate(turretDegrees(), targetAngle);
+                //omegaSetpoint += joy.getXAxis();
             }
             //scan();
             //omegaSetpoint += positionControl.calculate(turretDegrees(), limitAngle(235+yawWrap()-360));
@@ -146,6 +148,10 @@ public class Turret{
         else{//target good
             SmartDashboard.putString("mode", "Facing Target");
             omegaSetpoint += positionControl.calculate(-chameleon.getGoalAngle(), angleOffset.getDouble(-2.9));
+        }
+
+        if(/*panel.getButton(12)*/joy.getButton(2)){
+            omegaSetpoint = joy.getXAxis()*2;
         }
 
         //omegaSetpoint += positionControl.calculate(turretDegrees(), targetPosition);
@@ -160,7 +166,10 @@ public class Turret{
 
         boolean safe = turretDegrees()<271 && turretDegrees()>-1;
         if(safe){
-            if(/*spinButton.getBoolean(false)&&*/track){
+            if(/*spinButton.getBoolean(false)&&*/true){
+                // if(panel.getButton(12)){
+                //     omegaSetpoint = 2*joy.getXAxis();
+                // }
                 rotateTurret(omegaSetpoint);
                 //System.out.println("Attempting to rotate the POS at" + omegaSetpoint);
             }
@@ -185,19 +194,19 @@ public class Turret{
         }
 
         //setF(1);
-        SmartDashboard.putNumber("Turret DB Omega offset", -driveOmega*arbDriveMult.getDouble(-0.28));
-        SmartDashboard.putNumber("Turret Omega", omegaSetpoint);
-        SmartDashboard.putNumber("Turret Position", turretDegrees());
-        SmartDashboard.putNumber("Turret Speed", encoder.getVelocity());
-        SmartDashboard.putNumber("Turret FF", controller.getFF());
-        SmartDashboard.putBoolean("Turret Safe", safe);
-        SmartDashboard.putNumber("Turret North", limitAngle(235+yawWrap()-360));
-        SmartDashboard.putNumber("YawWrap", yawWrap()-360);
-        SmartDashboard.putBoolean("Turret At Target", atTarget);
-        //chasingTarget = false;
-        SmartDashboard.putNumber("Turret Heading from North", fieldHeading());
-        SmartDashboard.putBoolean("Turret Track", track);
-        SmartDashboard.putBoolean("Turret at Target", atTarget);
+        // SmartDashboard.putNumber("Turret DB Omega offset", -driveOmega*arbDriveMult.getDouble(-0.28));
+        // SmartDashboard.putNumber("Turret Omega", omegaSetpoint);
+        // SmartDashboard.putNumber("Turret Position", turretDegrees());
+        // SmartDashboard.putNumber("Turret Speed", encoder.getVelocity());
+        // SmartDashboard.putNumber("Turret FF", controller.getFF());
+        // SmartDashboard.putBoolean("Turret Safe", safe);
+        // SmartDashboard.putNumber("Turret North", limitAngle(235+yawWrap()-360));
+        // SmartDashboard.putNumber("YawWrap", yawWrap()-360);
+        // SmartDashboard.putBoolean("Turret At Target", atTarget);
+        // //chasingTarget = false;
+        // SmartDashboard.putNumber("Turret Heading from North", fieldHeading());
+        // SmartDashboard.putBoolean("Turret Track", track);
+        // SmartDashboard.putBoolean("Turret at Target", atTarget);
     }
 
     public boolean setTargetAngle(double target){

@@ -14,7 +14,7 @@ public class RobotToggles{
     public static boolean postPigeonRoll = true;
     public static boolean postMotorDebug = true;
 
-    public static boolean logData = true;
+    public static boolean logData = false;
 
     public static boolean shooterPID = true;
 

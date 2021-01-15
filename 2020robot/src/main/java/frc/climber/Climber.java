@@ -29,8 +29,8 @@ public class Climber{
     public String[] data = {"match time", "init time", "speed", "motor current"};
     public String[] units = {"seconds", "seconds", "rpm", "A"};
 
-    private ShuffleboardTab tab = Shuffleboard.getTab("climber");
-    private NetworkTableEntry speedEntry = tab.add("Climber Speed", 0.25).getEntry();
+    // private ShuffleboardTab tab = Shuffleboard.getTab("climber");
+    // private NetworkTableEntry speedEntry = tab.add("Climber Speed", 0.25).getEntry();
     private Timer climberTimer;
 
     public Solenoid buddyLock;
@@ -52,6 +52,7 @@ public class Climber{
         //     drive(0);
         // }
         if(panel.getButton(1)){
+            climberLock.set(Value.kReverse);
             drive(0.7);
         }
         else if(panel.getButton(2)){

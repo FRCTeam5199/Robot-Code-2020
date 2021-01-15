@@ -32,8 +32,8 @@ import frc.vision.GoalChameleon;
 public class Intake{ 
     private VictorSPX victor;
     private ButtonPanel panel;
-    private ShuffleboardTab tab = Shuffleboard.getTab("balls");
-    private NetworkTableEntry speedEntry = tab.add("Intake Speed", 0).getEntry();
+    // private ShuffleboardTab tab = Shuffleboard.getTab("balls");
+    // private NetworkTableEntry speedEntry = tab.add("Intake Speed", 0).getEntry();
     // private NetworkTableEntry pneumaticNo = tab.add("Pneumatic Number", 0).getEntry();
     // private NetworkTableEntry pneumaticActuated = tab.add("Pneumatic Actuated", false).getEntry();
     private DoubleSolenoid solenoidIntake;
@@ -51,6 +51,12 @@ public class Intake{
         sol1.set(false);
         sol7.set(false);
     }
+
+    public void closeUnusedSolenoids(){
+        sol1.set(false);
+        sol7.set(false);
+    }
+
     private int intakeMult;
     /**
      * Set intake direction
@@ -136,15 +142,15 @@ public class Intake{
     //     // }
     // }
 
-    public void updateSimple(){
-        if(panel.getButton(1)){
-            victor.set(ControlMode.PercentOutput, speedEntry.getDouble(0.6));
-        }
-        else if(panel.getButton(2)){
-            victor.set(ControlMode.PercentOutput, -speedEntry.getDouble(0.6));
-        }
-        else{
-            victor.set(ControlMode.PercentOutput, 0);
-        }
-    }
+    // public void updateSimple(){
+    //     if(panel.getButton(1)){
+    //         victor.set(ControlMode.PercentOutput, speedEntry.getDouble(0.6));
+    //     }
+    //     else if(panel.getButton(2)){
+    //         victor.set(ControlMode.PercentOutput, -speedEntry.getDouble(0.6));
+    //     }
+    //     else{
+    //         victor.set(ControlMode.PercentOutput, 0);
+    //     }
+    // }
 }

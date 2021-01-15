@@ -2,6 +2,10 @@ package frc.shooter;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax.FaultID;
@@ -16,6 +20,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Units;
+import frc.controllers.ButtonPanel;
 import frc.controllers.JoystickController;
 import frc.controllers.XBoxController;
 import frc.robot.RobotMap;
@@ -27,12 +32,17 @@ import frc.vision.GoalChameleon;
 import frc.leds.ShooterLEDs;
 
 public class Shooter{
+
+    private boolean useFalcons = true;
+
     private CANSparkMax leader, follower;
+    private TalonFX falconLeader, falconFollower;
     private CANPIDController speedo;
     private CANEncoder encoder;
     private XBoxController xbox;
     private boolean enabled = true; 
     private JoystickController joy;
+    private ButtonPanel panel;
 
     private Timer timer = new Timer();
     private Logger logger = new Logger("shooter");
@@ -40,11 +50,11 @@ public class Shooter{
 
     private double pulleyRatio = RobotNumbers.motorPulleySize/RobotNumbers.driverPulleySize;
 
-    private ShuffleboardTab tab = Shuffleboard.getTab("Shooter");
-    private NetworkTableEntry shooterSpeed = tab.add("Shooter Speed", 0).getEntry();
-    private NetworkTableEntry shooterToggle = tab.add("Shooter Toggle", false).getEntry();
-    private NetworkTableEntry manualSpeedOverride = tab.add("SPEED OVERRIDE", false).getEntry();
-    private NetworkTableEntry rampRate = tab.add("Ramp Rate", 40).getEntry();
+    // private ShuffleboardTab tab = Shuffleboard.getTab("Shooter");
+    // private NetworkTableEntry shooterSpeed = tab.add("Shooter Speed", 0).getEntry();
+    // private NetworkTableEntry shooterToggle = tab.add("Shooter Toggle", false).getEntry();
+    // private NetworkTableEntry manualSpeedOverride = tab.add("SPEED OVERRIDE", false).getEntry();
+    // private NetworkTableEntry rampRate = tab.add("Ramp Rate", 40).getEntry();
 
     public String[] data = {
         "match time", "init time", 
@@ -65,17 +75,17 @@ public class Shooter{
     private boolean spunUp = false;
     private boolean recoveryPID = false;
 
-    private NetworkTableEntry shooterP = tab.add("P", 0.00032).getEntry();
-    private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
-    private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
-    private NetworkTableEntry recP = tab.add("recP", 3e-4).getEntry();
-    private NetworkTableEntry recI = tab.add("recI", 1e-7).getEntry();
-    private NetworkTableEntry recD = tab.add("recD", 0.07).getEntry();
-    private NetworkTableEntry shooterF = tab.add("F", 0.000185).getEntry();
+    // private NetworkTableEntry shooterP = tab.add("P", 0.00032).getEntry();
+    // private NetworkTableEntry shooterI = tab.add("I", 0).getEntry();
+    // private NetworkTableEntry shooterD = tab.add("D", 0).getEntry();
+    // private NetworkTableEntry recP = tab.add("recP", 3e-4).getEntry();
+    // private NetworkTableEntry recI = tab.add("recI", 1e-7).getEntry();
+    // private NetworkTableEntry recD = tab.add("recD", 0.07).getEntry();
+    // private NetworkTableEntry shooterF = tab.add("F", 0.000185).getEntry();
 
-    private NetworkTableEntry closeSpeedEntry = tab.add("close speed", 3000).getEntry();
-    private NetworkTableEntry farSpeedEntry = tab.add("far speed", 4000).getEntry();
-    private NetworkTableEntry farthestSpeedEntry = tab.add("farthest speed", 4700).getEntry();
+    // private NetworkTableEntry closeSpeedEntry = tab.add("close speed", 3000).getEntry();
+    // private NetworkTableEntry farSpeedEntry = tab.add("far speed", 4000).getEntry();
+    // private NetworkTableEntry farthestSpeedEntry = tab.add("farthest speed", 4700).getEntry();
 
     private double P, I, D, F, recoveryP, recoveryI, recoveryD;
     public double actualRPM;
@@ -83,14 +93,27 @@ public class Shooter{
     private GoalChameleon chameleon;
     private double lastSpeed;
 
+    public boolean interpolationEnabled = false;
+
     public Shooter(){
-        leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
-        follower = new CANSparkMax(RobotMap.shooterFollower, MotorType.kBrushless);
-        if(RobotToggles.shooterPID){
-            speedo = leader.getPIDController();
+        if(!useFalcons){
+            leader = new CANSparkMax(RobotMap.shooterLeader, MotorType.kBrushless);
+            follower = new CANSparkMax(RobotMap.shooterFollower, MotorType.kBrushless);
+            if(RobotToggles.shooterPID){
+                speedo = leader.getPIDController();
+            }
+            leader.setInverted(true);
+            follower.follow(leader, true);
         }
-        leader.setInverted(true);
-        follower.follow(leader, true);
+        else{
+            falconLeader = new TalonFX(RobotMap.shooterLeader);
+            falconLeader.setInverted(TalonFXInvertType.Clockwise);
+            falconFollower = new TalonFX(RobotMap.shooterFollower);
+            falconFollower.setInverted(TalonFXInvertType.CounterClockwise);
+            falconFollower.follow(falconLeader);
+            falconLeader.setNeutralMode(NeutralMode.Coast);
+            falconFollower.setNeutralMode(NeutralMode.Coast);
+        }
         poweredState = false;
         chameleon = new GoalChameleon();
     }
@@ -99,16 +122,22 @@ public class Shooter{
      * Update the Shooter object.
      */
     public void update(){
-        actualRPM = leader.getEncoder().getVelocity();
+        if(!useFalcons){
+            actualRPM = leader.getEncoder().getVelocity();
+        }
+        else{
+            actualRPM = falconLeader.getSelectedSensorVelocity()*(60/40960); //do math: 4096 units/rotation, units/100ms
+        }
         checkState();
         //speed = shooterSpeed.getDouble(0);
         //put code here to set speed based on distance to goal
+        boolean disabled = false;
         double closeDist = 3; //close zone low end distance
-        double closeSpeed = closeSpeedEntry.getDouble(3000); //close zone speed
-        double farDist = 4; //far zone low end distance
-        double farSpeed = farSpeedEntry.getDouble(4500); //far zone speed
-        double farthestDist = 6; //farthest zone low end distance
-        double farthestSpeed = farthestSpeedEntry.getDouble(4700); //farthest zone speed
+        // double closeSpeed = closeSpeedEntry.getDouble(3000); //close zone speed
+        // double farDist = 4; //far zone low end distance
+        // double farSpeed = farSpeedEntry.getDouble(4500); //far zone speed
+        // double farthestDist = 6; //farthest zone low end distance
+        // double farthestSpeed = farthestSpeedEntry.getDouble(4700); //farthest zone speed
 
         // if(chameleon.getGoalDistance()>closeDist && chameleon.getGoalDistance()<farDist){//close zone
         //     SmartDashboard.putString("ZONE", "close");
@@ -131,18 +160,34 @@ public class Shooter{
         // }
 
         //speed = 4040; //set in stone speed
-        if(!joy.getButton(1)){
-            speed = interpolateSpeed();
-            lastSpeed = speed;
+        // if(!joy.getButton(1)){
+        //     speed = interpolateSpeed();
+        //     lastSpeed = speed;
+        // }
+        // else{
+        //     speed = lastSpeed;
+        // }
+        if(!panel.getButton(13)){
+            speed = interpolateSpeed(); //4200*((joy.getSlider()*0.25)+1); //4200
+            disabled = false;
         }
         else{
-            speed = lastSpeed;
+            speed = 0;
+            disabled = true;
         }
+
+        // if(!interpolationEnabled){
+        //     speed = 4200;
+        // }
+
+
+
+
         // if(!joy.getButton(1)){
         //     speed = interpolateSpeed();
         // }
 
-        double rate = rampRate.getDouble(40);
+        //double rate = rampRate.getDouble(40);
         //boolean toggle = shooterToggle.getBoolean(false);
 
         // if(leader.getOpenLoopRampRate()!=rate){
@@ -160,7 +205,7 @@ public class Shooter{
         P = 0.00035;
         I = 0;
         D = 0;
-        F = 0.000185;//shooterF.getDouble(0.000185);
+        F = 0.00019;//shooterF.getDouble(0.000185);
         
 
         //3.00E-04	1.00E-07	0.07 (tentative values, not perfect yet)
@@ -178,40 +223,53 @@ public class Shooter{
             //leader.set(0.05);
         //toggle(toggle);
         //enabled = true; //REMOVE IF RUNNING THE SHOOTER ALL THE TIME IS BAD
-        if(enabled){
-            //poweredState = true;
-            if(RobotToggles.shooterPID){
-                setSpeed(speed);
-            }
-            else{
-                leader.set(speed);
-            }
+        //speed = 4150;
+        //speed = 3000;
+        if(!disabled){
+            setSpeed(speed);
         }
         else{
-            //poweredState = false;
-            if(RobotToggles.shooterPID){
-                //do nothing because the voltage being set to 0 *should* coast it?
-                //to past me: it does
+            if(!useFalcons){
                 leader.set(0);
             }
             else{
-                leader.set(0);
+                falconLeader.set(ControlMode.PercentOutput, 0);
             }
         }
+        // if(!panel.getButton(13)/*enabled||panel.getButton(13)*/){
+        //     //poweredState = true;
+        //     if(RobotToggles.shooterPID){
+        //         setSpeed(speed);
+        //     }
+        //     else{
+        //         leader.set(speed);
+        //     }
+        // }
+        // else{
+        //     //poweredState = false;
+        //     if(RobotToggles.shooterPID){
+        //         //do nothing because the voltage being set to 0 *should* coast it?
+        //         //to past me: it does
+        //         leader.set(speed);
+        //     }
+        //     else{
+        //         leader.set(0);
+        //     }
+        // }
 
         SmartDashboard.putNumber("RPM", actualRPM);
         SmartDashboard.putNumber("Target RPM", speed);
-        SmartDashboard.putNumber("Drive Wheel RPM", actualRPM*pulleyRatio);
-        SmartDashboard.putNumber("Drive Wheel IPS", actualRPM*pulleyRatio*RobotNumbers.driverWheelDiameter*Math.PI);
-        SmartDashboard.putNumber("Motor Current", leader.getOutputCurrent());
-        SmartDashboard.putNumber("Motor Temp", leader.getMotorTemperature());
-        SmartDashboard.putNumber("I accumulator", speedo.getIAccum());
-        SmartDashboard.putBoolean("RecMode", recoveryPID);
+        // SmartDashboard.putNumber("Drive Wheel RPM", actualRPM*pulleyRatio);
+        // SmartDashboard.putNumber("Drive Wheel IPS", actualRPM*pulleyRatio*RobotNumbers.driverWheelDiameter*Math.PI);
+        // SmartDashboard.putNumber("Motor Current", leader.getOutputCurrent());
+        // SmartDashboard.putNumber("Motor Temp", leader.getMotorTemperature());
+        // SmartDashboard.putNumber("I accumulator", speedo.getIAccum());
+        // SmartDashboard.putBoolean("RecMode", recoveryPID);
 
-        SmartDashboard.putNumber("Target Size", chameleon.getGoalSize());
-        SmartDashboard.putNumber("Calculated Shooter Speed", interpolateSpeed());
-        SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
-        SmartDashboard.putNumber("Interpolated Speed", interpolateSpeed());
+        // SmartDashboard.putNumber("Target Size", chameleon.getGoalSize());
+        // SmartDashboard.putNumber("Calculated Shooter Speed", interpolateSpeed());
+        // SmartDashboard.putNumber("Battery Voltage", RobotController.getBatteryVoltage());
+        // SmartDashboard.putNumber("Interpolated Speed", interpolateSpeed());
 
         
         
@@ -229,6 +287,10 @@ public class Shooter{
         SmartDashboard.putBoolean("atSpeed", atSpeed);
         SmartDashboard.putNumber("ballsShot", ballsShot);
         SmartDashboard.putBoolean("shooter enable", enabled);
+    }
+
+    private double convertRPMtoFalconUnits(double rpm){
+        return rpm*(40960/60);
     }
 
     public void spinUp(){
@@ -254,6 +316,9 @@ public class Shooter{
     }
 
     public boolean atSpeed(){
+        if(useFalcons){
+            return falconLeader.getSelectedSensorVelocity()>speed-80;
+        }
         return leader.getEncoder().getVelocity()>speed-80;
     }
 
@@ -296,7 +361,12 @@ public class Shooter{
      */
     public void setSpeed(double rpm){
         //System.out.println("setSpeed1");
-        speedo.setReference(rpm, ControlType.kVelocity);
+        if(!useFalcons){
+            speedo.setReference(rpm, ControlType.kVelocity);
+        }
+        else{
+            falconLeader.set(ControlMode.Velocity, convertRPMtoFalconUnits(rpm));
+        }
         //System.out.println("setSpeed2");
     }
 
@@ -312,34 +382,46 @@ public class Shooter{
      * Initialize the Shooter object.
      */
     public void init(){
-        shooterP.getDouble(0);
-        shooterI.getDouble(0);
-        shooterD.getDouble(0);
+        // shooterP.getDouble(0);
+        // shooterI.getDouble(0);
+        // shooterD.getDouble(0);
+        if(!useFalcons){
+            leader.setSmartCurrentLimit(80);
+            follower.setSmartCurrentLimit(80);
+            leader.setIdleMode(IdleMode.kCoast);
+            follower.setIdleMode(IdleMode.kCoast);
 
-        leader.setSmartCurrentLimit(80);
-        follower.setSmartCurrentLimit(80);
-        leader.setIdleMode(IdleMode.kCoast);
-        follower.setIdleMode(IdleMode.kCoast);
+            leader.getEncoder().setPosition(0);
+            leader.setOpenLoopRampRate(40);
+        }
+        else{
+            //ADD -------------------------------------------------------------------------------------------------------
+            
+        }
 
-        leader.getEncoder().setPosition(0);
-        leader.setOpenLoopRampRate(40);
-        
         ballsShot = 0;
 
         //leader.setInverted(false);
         // follower.setInverted(true);
 
-        speedo = leader.getPIDController();
-        encoder = leader.getEncoder();
-        //setPID(4e-5, 0, 0);
-        speedo.setOutputRange(-1, 1);
-        //setPID(1,0,0);
+        if(!useFalcons){
+            speedo = leader.getPIDController();
+            encoder = leader.getEncoder();
+            //setPID(4e-5, 0, 0);
+            speedo.setOutputRange(-1, 1);
+            //setPID(1,0,0);
 
-        speedo.setOutputRange(-1, 1);
+            speedo.setOutputRange(-1, 1);
+        }
+        else{
+            //ADD -------------------------------------------------------------------------------------------------------
+        }
+        
 
         chameleon.init();
-        SmartDashboard.putString("ZONE", "none");
+        //SmartDashboard.putString("ZONE", "none");
         joy = new JoystickController(1);
+        panel = new ButtonPanel(2);
     }
 
     /**
@@ -349,10 +431,18 @@ public class Shooter{
      * @param D - D value
      */
     private void setPID(double P, double I, double D, double F){
-        speedo.setP(P);
-        speedo.setI(I);
-        speedo.setD(D);
-        speedo.setFF(F);
+        if(!useFalcons){
+            speedo.setP(P);
+            speedo.setI(I);
+            speedo.setD(D);
+            speedo.setFF(F);
+        }
+        else{
+            falconLeader.config_kP(1, P);
+            falconLeader.config_kI(1, I);
+            falconLeader.config_kD(1, D);
+            falconLeader.config_kF(1, F);
+        }
     }
 
     /**
@@ -364,6 +454,7 @@ public class Shooter{
         timer.start();
         //permalogger.init();
     }
+
     /**
      * Close the Shooter logger, call during disabledInit().
      */
@@ -376,20 +467,20 @@ public class Shooter{
      * Write shooter data to the log file.
      */
     private void writeData(){
-        double powered;
-        if(enabled){powered = 1;}else{powered = 0;}
-        double[] data = {
-            Timer.getMatchTime(), 
-            timer.get(), 
-            leader.getEncoder().getVelocity(), 
-            speed, leader.getMotorTemperature(), 
-            leader.getOutputCurrent(), 
-            powered, 
-            P, I, D, 
-            recoveryP, recoveryI, recoveryD,
-            chameleon.getGoalDistance()
-        };
-        logger.writeData(data);
+        // double powered;
+        // if(enabled){powered = 1;}else{powered = 0;}
+        // double[] data = {
+        //     Timer.getMatchTime(), 
+        //     timer.get(), 
+        //     leader.getEncoder().getVelocity(), 
+        //     speed, leader.getMotorTemperature(), 
+        //     leader.getOutputCurrent(), 
+        //     powered, 
+        //     P, I, D, 
+        //     recoveryP, recoveryI, recoveryD,
+        //     chameleon.getGoalDistance()
+        // };
+        // logger.writeData(data);
     }
 
     private double[][] sizeSpeedsArray = {
@@ -401,9 +492,10 @@ public class Shooter{
         {85, 4500},
     };
 
-    private double speedMult = 0.96;
+    private double speedMult = 1;
     private double interpolateSpeed(){
         double size = chameleon.getGoalSize();
+        double finalMult = 1;//(joy.getSlider()*0.25)+1;
         int index = 0;
         for(int i = 0; i<sizeSpeedsArray.length ; i++){
             if(size>sizeSpeedsArray[i][0]){
@@ -420,11 +512,34 @@ public class Shooter{
 
         double speedGap = sizeSpeedsArray[index][1]-sizeSpeedsArray[index+1][1];
         double outSpeed = sizeSpeedsArray[index][1] + speedGap*portionOfGap; //low end + gap * portion
-        return outSpeed*speedMult;
+        SmartDashboard.putNumber("Interpolating Shooter Speed", outSpeed*speedMult*finalMult);
+        return outSpeed*speedMult*finalMult;
     }
     
+    private double[][] voltageFFArray = {
+        {0, 0},
+        {11, 190},
+        {13, 185}
+    };
+
     private double interpolateFF(){
         double voltage = RobotController.getBatteryVoltage();
+        int index = 0;
+        for(int i = 0; i<voltageFFArray.length ; i++){
+            if(voltage>voltageFFArray[i][0]){
+                index = i;
+            }
+        }
+        //now index is the index of the low end, index+1 = high end
+        if(index+1>=voltageFFArray.length){
+            return voltageFFArray[sizeSpeedsArray.length-1][1];
+        }
+        double sizeGap = voltageFFArray[index][0]-voltageFFArray[index+1][0];
+        double gapFromLowEnd = voltage-voltageFFArray[index][0];
+        double portionOfGap = gapFromLowEnd/sizeGap;
+
+        double speedGap = voltageFFArray[index][1]-voltageFFArray[index+1][1];
+        double outSpeed = voltageFFArray[index][1] + speedGap*portionOfGap; //low end + gap * portion
         return 0;
     }
 }
